@@ -227,6 +227,36 @@ export default function App() {
     }));
   };
 
+  const handleNameTransformChange = (field: keyof CardData['layout']['nameTransform'], value: number) => {
+    setData(prev => ({
+      ...prev,
+      layout: {
+        ...prev.layout,
+        nameTransform: { ...(prev.layout.nameTransform || INITIAL_CARD_DATA.layout.nameTransform), [field]: value }
+      }
+    }));
+  };
+
+  const handleDataTransformChange = (field: keyof CardData['layout']['dataTransform'], value: number) => {
+    setData(prev => ({
+      ...prev,
+      layout: {
+        ...prev.layout,
+        dataTransform: { ...(prev.layout.dataTransform || INITIAL_CARD_DATA.layout.dataTransform), [field]: value }
+      }
+    }));
+  };
+
+  const handleClubTransformChange = (field: keyof CardData['layout']['clubTransform'], value: number) => {
+    setData(prev => ({
+      ...prev,
+      layout: {
+        ...prev.layout,
+        clubTransform: { ...(prev.layout.clubTransform || INITIAL_CARD_DATA.layout.clubTransform), [field]: value }
+      }
+    }));
+  };
+
   const exportSVG = () => {
     if (!svgRef.current) return;
     const svgData = new XMLSerializer().serializeToString(svgRef.current);
@@ -357,14 +387,29 @@ export default function App() {
             <TextField label="Name" value={data.texts.firstName} onChange={(v) => handleTextChange('firstName', v)} />
             <TextField label="Last Name" value={data.texts.lastName} onChange={(v) => handleTextChange('lastName', v)} />
           </div>
+          <div className="grid grid-cols-3 gap-2 mb-4 bg-black/20 p-2 rounded">
+            <SliderField label="Name X" value={data.layout.nameTransform?.x ?? 2025.74} min={1000} max={3000} step={10} onChange={(v) => handleNameTransformChange('x', v)} />
+            <SliderField label="Name Y" value={data.layout.nameTransform?.y ?? 5960.33} min={5000} max={6800} step={10} onChange={(v) => handleNameTransformChange('y', v)} />
+            <SliderField label="Name Size" value={data.layout.nameTransform?.fontSize ?? 236.57} min={50} max={400} step={5} onChange={(v) => handleNameTransformChange('fontSize', v)} />
+          </div>
           <div className="grid grid-cols-3 gap-3 mb-4">
             <TextField label="Birth" value={data.texts.birthDate} onChange={(v) => handleTextChange('birthDate', v)} />
             <TextField label="Height" value={data.texts.height} onChange={(v) => handleTextChange('height', v)} />
             <TextField label="Weight" value={data.texts.weight} onChange={(v) => handleTextChange('weight', v)} />
           </div>
+          <div className="grid grid-cols-3 gap-2 mb-4 bg-black/20 p-2 rounded">
+            <SliderField label="Data X" value={data.layout.dataTransform?.x ?? 2025.74} min={1000} max={3000} step={10} onChange={(v) => handleDataTransformChange('x', v)} />
+            <SliderField label="Data Y" value={data.layout.dataTransform?.y ?? 6268.24} min={5000} max={6800} step={10} onChange={(v) => handleDataTransformChange('y', v)} />
+            <SliderField label="Data Size" value={data.layout.dataTransform?.fontSize ?? 200} min={50} max={400} step={5} onChange={(v) => handleDataTransformChange('fontSize', v)} />
+          </div>
           <div className="grid grid-cols-2 gap-3 mb-4">
             <TextField label="Club" value={data.texts.clubName} onChange={(v) => handleTextChange('clubName', v)} />
             <TextField label="Abbr." value={data.texts.clubAbbreviation} onChange={(v) => handleTextChange('clubAbbreviation', v)} />
+          </div>
+          <div className="grid grid-cols-3 gap-2 mb-4 bg-black/20 p-2 rounded">
+            <SliderField label="Club X" value={data.layout.clubTransform?.x ?? 1750} min={1000} max={3000} step={10} onChange={(v) => handleClubTransformChange('x', v)} />
+            <SliderField label="Club Y" value={data.layout.clubTransform?.y ?? 6600} min={5000} max={7000} step={10} onChange={(v) => handleClubTransformChange('y', v)} />
+            <SliderField label="Club Size" value={data.layout.clubTransform?.fontSize ?? 170} min={50} max={300} step={5} onChange={(v) => handleClubTransformChange('fontSize', v)} />
           </div>
           <div className="grid grid-cols-2 gap-3 pt-2 border-t border-neutral-800">
             <ColorField label="Name Ribbon" value={data.colors.nombreBg} onChange={(v) => handleColorChange('nombreBg', v)} id="nombreBg" />

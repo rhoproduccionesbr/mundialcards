@@ -23,12 +23,12 @@ const SVGCard: React.FC<SVGCardProps> = ({ data, svgRef, selectedElement, onSele
   const MAX_NAME_CHARS = 16;
   const currentNameLength = data.texts.firstName.length + data.texts.lastName.length + 1;
   const nameScale = currentNameLength > MAX_NAME_CHARS ? MAX_NAME_CHARS / currentNameLength : 1;
-  const nameFontSize = 236.57 * nameScale;
+  const nameFontSize = (data.layout.nameTransform?.fontSize || 236.57) * nameScale;
 
   const MAX_CLUB_CHARS = 20;
   const currentClubLength = data.texts.clubName.length + data.texts.clubAbbreviation.length + 3;
   const clubScale = currentClubLength > MAX_CLUB_CHARS ? Math.max(0.4, MAX_CLUB_CHARS / currentClubLength) : 1;
-  const clubFontSize = 236.57 * clubScale;
+  const clubFontSize = (data.layout.clubTransform?.fontSize || 170) * clubScale;
 
   return (
     <svg
@@ -99,24 +99,6 @@ const SVGCard: React.FC<SVGCardProps> = ({ data, svgRef, selectedElement, onSele
         fill={data.colors.fondo}
         {...getHighlightProps('canvas')}
       />
-
-      {/* WATERMARK */}
-      {data.layout.showWatermark !== false && (
-        <text
-          x={-5000}
-          y={200}
-          transform="rotate(-90)"
-          fill="#ffffff"
-          opacity="0.1"
-          fontSize="240"
-          fontWeight="bold"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: "30px", pointerEvents: "none" }}
-          textAnchor="start"
-          filter={data.effects.emboss ? 'url(#inner-glow)' : undefined}
-        >
-          FANAS EDITION
-        </text>
-      )}
 
       {/* SHAPES GROUP */}
       <g {...getHighlightProps('shapes')} filter={data.effects.emboss ? 'url(#emboss-effect)' : undefined}>
@@ -246,16 +228,61 @@ const SVGCard: React.FC<SVGCardProps> = ({ data, svgRef, selectedElement, onSele
 
       {/* TEXTOS PRINCIPALES */}
       <g {...getHighlightProps('texts')}>
-        <text x="2025.74" y="5960.33" id="PLAYE_x0020_NAME" fill="white" className="fnt-name" fontSize={nameFontSize} textAnchor="middle" style={{ fontFamily: "'Montserrat', sans-serif", letterSpacing: "2px" }}>
+        <text 
+          x={data.layout.nameTransform?.x || 2025.74} 
+          y={data.layout.nameTransform?.y || 5960.33} 
+          id="PLAYE_x0020_NAME" 
+          fill="white" 
+          className="fnt-name" 
+          fontSize={nameFontSize} 
+          textAnchor="middle" 
+          style={{ fontFamily: "'Montserrat', sans-serif", letterSpacing: "2px" }}
+        >
           <tspan fontWeight="400">{data.texts.firstName}</tspan> <tspan fontWeight="900" style={{ textTransform: "uppercase" }}>{data.texts.lastName}</tspan>
         </text>
-        <text x="2025.74" y="6268.24" id="PLAYER_x0020_DATA" fill="white" className="fnt-data" fontSize="200" textAnchor="middle" style={{ fontFamily: "'Montserrat', sans-serif", opacity: 0.8, letterSpacing: "5px" }}>
+        <text 
+          x={data.layout.dataTransform?.x || 2025.74} 
+          y={data.layout.dataTransform?.y || 6268.24} 
+          id="PLAYER_x0020_DATA" 
+          fill="white" 
+          className="fnt-data" 
+          fontSize={data.layout.dataTransform?.fontSize || 200} 
+          textAnchor="middle" 
+          style={{ fontFamily: "'Montserrat', sans-serif", opacity: 0.8, letterSpacing: "5px" }}
+        >
           <tspan fontWeight="400">{data.texts.birthDate}  |  {data.texts.height}  |  {data.texts.weight}</tspan>
         </text>
-        <text x="1771.4" y="6647.49" id="CLUB_x0020_NOMB" fill="white" className="fnt-data" fontSize={clubFontSize} textAnchor="middle" style={{ fontFamily: "'Montserrat', sans-serif" }}>
+        <text 
+          x={data.layout.clubTransform?.x || 1750} 
+          y={data.layout.clubTransform?.y || 6600} 
+          id="CLUB_x0020_NOMB" 
+          fill="white" 
+          className="fnt-data" 
+          fontSize={clubFontSize} 
+          textAnchor="middle" 
+          style={{ fontFamily: "'Montserrat', sans-serif" }}
+        >
           <tspan fontWeight="800" style={{ textTransform: "uppercase", letterSpacing: "2px" }}>{data.texts.clubName}</tspan> <tspan fontWeight="400" style={{ opacity: 0.9 }}>({data.texts.clubAbbreviation})</tspan>
         </text>
       </g>
+
+      {/* WATERMARK FOREGROUND */}
+      {data.layout.showWatermark !== false && (
+        <text
+          x={150}
+          y={6000}
+          transform="rotate(-90, 150, 6000)"
+          fill="#ffffff"
+          opacity="0.1"
+          fontSize="240"
+          fontWeight="bold"
+          style={{ fontFamily: "'Montserrat', sans-serif", letterSpacing: "30px", pointerEvents: "none" }}
+          textAnchor="start"
+          filter={data.effects.emboss ? 'url(#inner-glow)' : undefined}
+        >
+          FANAS EDITION
+        </text>
+      )}
     </svg>
   );
 };

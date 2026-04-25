@@ -54,6 +54,21 @@ export interface CardData {
       spacing: number;
       strokeWidth: number;
     };
+    nameTransform: {
+      x: number;
+      y: number;
+      fontSize: number;
+    };
+    dataTransform: {
+      x: number;
+      y: number;
+      fontSize: number;
+    };
+    clubTransform: {
+      x: number;
+      y: number;
+      fontSize: number;
+    };
   };
   effects: {
     foilType: string;
@@ -93,7 +108,7 @@ export const INITIAL_CARD_DATA: CardData = {
     paniniTransform: { scale: 2.5, rotate: 0, x: -195, y: 35 },
   },
   layout: {
-    padding: 0,
+    padding: 70,
     showWatermark: true,
     paisTransform: {
       x: 4496,
@@ -101,6 +116,21 @@ export const INITIAL_CARD_DATA: CardData = {
       fontSize: 560,
       spacing: 0.9,
       strokeWidth: 21,
+    },
+    nameTransform: {
+      x: 2025.74,
+      y: 5960.33,
+      fontSize: 236.57,
+    },
+    dataTransform: {
+      x: 2025.74,
+      y: 6268.24,
+      fontSize: 200,
+    },
+    clubTransform: {
+      x: 1750,
+      y: 6600,
+      fontSize: 170,
     },
   },
   effects: {
