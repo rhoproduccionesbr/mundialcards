@@ -1,6 +1,7 @@
 import React, { useState, useRef, ChangeEvent } from 'react';
-import { Download, RotateCcw, Upload, ChevronDown, ChevronRight, Palette, Image as ImageIcon, Type, Globe, Sparkles, Eye, X } from 'lucide-react';
+import { Download, RotateCcw, Upload, ChevronDown, ChevronRight, Palette, Image as ImageIcon, Type, Globe, Sparkles, Eye, X, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { toPng } from 'html-to-image';
 import { CardData, INITIAL_CARD_DATA } from './types';
 import SVGCard from './components/SVGCard';
 
@@ -142,6 +143,7 @@ export default function App() {
   const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
   const [isHovering, setIsHovering] = useState(false);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   React.useEffect(() => {
     try {
@@ -264,11 +266,43 @@ export default function App() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${data.texts.playerName.replace(/\s+/g, '_')}_FIFA_Card.svg`;
+    link.download = `${(data.texts.firstName + '_' + data.texts.lastName).replace(/\s+/g, '_')}_Card.svg`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+  };
+
+  const exportPNG = async () => {
+    if (!svgRef.current) return;
+    setIsExporting(true);
+    
+    try {
+      const element = svgRef.current;
+      
+      // La resolución nativa del SVG es 5020x6758. Calculamos un pixel ratio para obtener
+      // un PNG de muy alta calidad (aprox 2400px de ancho).
+      const targetWidth = 2400;
+      const scale = targetWidth / element.clientWidth;
+      
+      const dataUrl = await toPng(element, {
+        quality: 1,
+        pixelRatio: scale > 0 ? scale : 3,
+        skipFonts: false,
+      });
+      
+      const link = document.createElement('a');
+      link.download = `${(data.texts.firstName + '_' + data.texts.lastName).replace(/\s+/g, '_')}_Card.png`;
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error('Error al exportar PNG:', err);
+      alert('Hubo un error al generar el PNG. Intente exportar en SVG.');
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const reset = () => {
@@ -549,10 +583,18 @@ export default function App() {
           </button>
           <button 
             onClick={exportSVG}
-            className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-cyan-900/20"
+            className="flex items-center gap-2 bg-neutral-800 hover:bg-neutral-700 text-white px-3 sm:px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-colors"
           >
             <Download size={14} />
-            <span className="hidden sm:inline">Export</span>
+            <span className="hidden sm:inline">SVG</span>
+          </button>
+          <button 
+            onClick={exportPNG}
+            disabled={isExporting}
+            className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 disabled:bg-cyan-600/50 text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-cyan-900/20"
+          >
+            {isExporting ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+            <span className="hidden sm:inline">{isExporting ? 'Procesando...' : 'PNG HQ'}</span>
           </button>
         </div>
       </header>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { CardData } from '../types';
 
 interface SVGCardProps {
@@ -9,6 +9,24 @@ interface SVGCardProps {
 }
 
 const SVGCard: React.FC<SVGCardProps> = ({ data, svgRef, selectedElement, onSelect }) => {
+  const [fontBase64, setFontBase64] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadFont = async () => {
+      try {
+        const response = await fetch('/fifa-26.otf');
+        const blob = await response.blob();
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setFontBase64(reader.result as string);
+        };
+        reader.readAsDataURL(blob);
+      } catch (err) {
+        console.error('Error loading font:', err);
+      }
+    };
+    loadFont();
+  }, []);
   const getHighlightProps = (id: string) => ({
     onClick: (e: React.MouseEvent) => {
       e.stopPropagation();
@@ -77,9 +95,10 @@ const SVGCard: React.FC<SVGCardProps> = ({ data, svgRef, selectedElement, onSele
         </clipPath>
         
         <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Bebas+Neue&family=Montserrat:wght@400;800&display=swap');
           @font-face {
             font-family: 'FIFA26';
-            src: url('/fifa-26.otf') format('opentype');
+            src: url('${fontBase64 || `${typeof window !== "undefined" ? window.location.origin : ""}/fifa-26.otf`}');
             font-weight: normal;
             font-style: normal;
           }
