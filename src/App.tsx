@@ -493,12 +493,13 @@ export default function App() {
               <X size={24} />
             </button>
             <div 
-              className="relative w-full max-w-5xl h-[90vh] flex items-center justify-center p-8"
+              className="relative w-full h-[85vh] flex items-center justify-center p-4 md:p-8"
               style={{ perspective: '1500px' }}
             >
               <div 
-                className="relative h-full w-auto aspect-[5020/6758]"
+                className="relative max-w-full max-h-full aspect-[5020/6758] mx-auto shrink-0"
                 style={{
+                  height: '100%',
                   transformStyle: 'preserve-3d',
                   transform: data.effects.tiltEnabled && isHovering 
                     ? `rotateX(${(50 - mousePos.y) / 4}deg) rotateY(${-(50 - mousePos.x) / 4}deg)` 
@@ -583,18 +584,18 @@ export default function App() {
           </button>
           <button 
             onClick={exportSVG}
-            className="flex items-center gap-2 bg-neutral-800 hover:bg-neutral-700 text-white px-3 sm:px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-colors"
+            className="flex items-center gap-1.5 bg-neutral-800 hover:bg-neutral-700 text-white px-3 sm:px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-colors"
           >
             <Download size={14} />
-            <span className="hidden sm:inline">SVG</span>
+            <span className="sm:inline">SVG</span>
           </button>
           <button 
             onClick={exportPNG}
             disabled={isExporting}
-            className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 disabled:bg-cyan-600/50 text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-cyan-900/20"
+            className="flex items-center gap-1.5 bg-cyan-600 hover:bg-cyan-500 disabled:bg-cyan-600/50 text-white px-3 sm:px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-cyan-900/20"
           >
             {isExporting ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-            <span className="hidden sm:inline">{isExporting ? 'Procesando...' : 'PNG HQ'}</span>
+            <span className="sm:inline">{isExporting ? '...' : 'PNG'}</span>
           </button>
         </div>
       </header>
@@ -617,7 +618,7 @@ export default function App() {
         {/* Main Canvas Area */}
         <main className="flex-1 relative flex items-center justify-center transition-all duration-[400ms] ease-[cubic-bezier(0.25,1,0.5,1)] bg-[radial-gradient(circle_at_center,rgba(8,145,178,0.05)_0%,rgba(0,0,0,1)_100%)] p-4 md:p-8" style={{ perspective: '1500px' }}>
           <div 
-            className="relative h-full max-h-[85vh] w-auto aspect-[5020/6758] transition-all duration-[400ms] ease-[cubic-bezier(0.25,1,0.5,1)] active:scale-[0.98] mx-auto flex items-center justify-center shrink-0"
+            className="relative h-full max-h-[85vh] max-w-full aspect-[5020/6758] transition-all duration-[400ms] ease-[cubic-bezier(0.25,1,0.5,1)] active:scale-[0.98] mx-auto flex items-center justify-center shrink-0"
             style={{
               transformStyle: 'preserve-3d',
               transform: data.effects.tiltEnabled && isHovering 
@@ -697,26 +698,29 @@ export default function App() {
           </AnimatePresence>
         </main>
 
-        {/* Mobile Contextual Bottom Sheet */}
-        <motion.aside 
-          initial={false}
-          animate={{ 
-            y: selectedElement ? 0 : '100%',
-            opacity: selectedElement ? 1 : 0
-          }}
-          transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className={`md:hidden absolute bottom-0 left-0 right-0 w-full mx-auto bg-neutral-900 border-t border-cyan-500/20 rounded-t-3xl shadow-[0_-20px_50px_rgba(0,0,0,0.5)] z-40 overflow-hidden flex flex-col h-[50vh] ${selectedElement ? 'pointer-events-auto' : 'pointer-events-none'}`}
+        {/* Mobile Controls Area */}
+        <aside 
+          className="md:hidden w-full bg-neutral-900 border-t border-cyan-500/20 z-40 flex flex-col shrink-0 h-[45vh] md:h-auto"
         >
-          {/* Handle for drag feel */}
-          <div 
-            className="h-1.5 w-10 bg-neutral-700 rounded-full mx-auto my-3 cursor-pointer"
-            onClick={() => selectedElement && setSelectedElement(null)}
-          />
+          <div className="px-4 py-3 border-b border-neutral-800 flex justify-between items-center bg-neutral-900/50">
+             <h2 className="text-xs font-bold uppercase tracking-widest text-cyan-500">
+               {selectedElement ? 'Editar Elemento' : 'Controles Generales'}
+             </h2>
+             {selectedElement && (
+                <button 
+                  onClick={() => setSelectedElement(null)}
+                  className="bg-neutral-800 hover:bg-neutral-700 text-white p-1.5 rounded-full transition-colors flex items-center gap-1"
+                >
+                   <RotateCcw size={14} className="rotate-45" />
+                   <span className="text-[10px] uppercase font-bold pr-1">Deseleccionar</span>
+                </button>
+             )}
+          </div>
           
-          <div className="px-6 pb-8 overflow-y-auto scrollbar-hide flex-1 space-y-4">
+          <div className="px-5 py-4 overflow-y-auto scrollbar-hide flex-1 space-y-4">
             {renderAllControls()}
           </div>
-        </motion.aside>
+        </aside>
       </div>
     </div>
   );
