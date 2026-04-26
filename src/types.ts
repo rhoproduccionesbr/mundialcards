@@ -85,7 +85,18 @@ export interface CardData {
     foilOpacity: number;
     emboss: boolean;
     tiltEnabled: boolean;
-    particles: 'none' | 'snow' | 'sparks' | 'confetti';
+    particles: 'none' | 'snow' | 'sparks' | 'confetti' | 'glimmers';
+    particleDensity: number;
+    particleSpeed: number;
+    playerRelief: boolean;
+    foilMasks: {
+      background: boolean;
+      player: boolean;
+      shapes: boolean;
+      containers: boolean;
+      texts: boolean;
+      logos: boolean;
+    };
   };
 }
 
@@ -154,5 +165,16 @@ export const INITIAL_CARD_DATA: CardData = {
     emboss: true,
     tiltEnabled: true,
     particles: 'none',
+    particleDensity: 50,
+    particleSpeed: 1.0,
+    playerRelief: false,
+    foilMasks: {
+      background: true,
+      player: false,
+      shapes: false,
+      containers: false,
+      texts: false,
+      logos: false,
+    },
   },
 };

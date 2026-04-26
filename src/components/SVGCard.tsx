@@ -48,6 +48,16 @@ const SVGCard: React.FC<SVGCardProps> = ({ data, svgRef, selectedElement, onSele
   const clubScale = currentClubLength > MAX_CLUB_CHARS ? Math.max(0.4, MAX_CLUB_CHARS / currentClubLength) : 1;
   const clubFontSize = (data.layout.clubTransform?.fontSize || 170) * clubScale;
 
+  const masks = data.effects.foilMasks || {
+    background: true,
+    player: false,
+    shapes: false,
+    containers: false,
+    texts: false,
+    logos: false,
+  };
+  const showFoilInside = data.effects.foilType !== 'none';
+
   return (
     <svg
       id="card-svg"
@@ -92,6 +102,50 @@ const SVGCard: React.FC<SVGCardProps> = ({ data, svgRef, selectedElement, onSele
         </clipPath>
         <clipPath id="clip-player">
           <path d="M169.93 17.55l3895.97 0 0 5493.65c0,57.35 -46.91,104.26 -104.26,104.26l-2767.68 0c-508.22,0 -924.03,-415.8 -924.03,-924.03l0 -4673.88z" />
+        </clipPath>
+
+        {/* 3D Depth Map Relief Filter for Player */}
+        <filter id="player-relief" x="-20%" y="-20%" width="140%" height="140%">
+          <feColorMatrix type="luminanceToAlpha" in="SourceGraphic" result="bumpMap" />
+          <feSpecularLighting in="bumpMap" surfaceScale="7" specularConstant="1.2" specularExponent="30" lightingColor="#ffffff" result="specular">
+            <fePointLight id="player-light" x="2500" y="3000" z="200" />
+          </feSpecularLighting>
+          <feComposite in="specular" in2="SourceAlpha" operator="in" result="specularMasked" />
+          <feComposite in="SourceGraphic" in2="specularMasked" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" />
+        </filter>
+
+        <clipPath id="foil-clip">
+          {masks.shapes && (
+            <>
+              <use href="#DOS" />
+              <use href="#SEIS" />
+              <use href="#_2INTER" />
+            </>
+          )}
+          {masks.containers && (
+            <>
+              <use href="#NOMBRE_x0020_Y_x0020_FECHA" />
+              <use href="#CLUB" />
+            </>
+          )}
+          {masks.logos && (
+            <>
+              <use href="#LOGO_x0020_FI" />
+              <use href="#FLAG_GROUP" />
+              <use href="#PANINI_GROUP" />
+            </>
+          )}
+          {masks.texts && (
+            <>
+              <use href="#PAIS_VERTICAL" />
+              <use href="#PLAYE_x0020_NAME" />
+              <use href="#PLAYER_x0020_DATA" />
+              <use href="#CLUB_x0020_NOMB" />
+            </>
+          )}
+          {masks.player && (
+            <use href="#PLAYER_GROUP" />
+          )}
         </clipPath>
         
         <style>{`
@@ -190,11 +244,12 @@ const SVGCard: React.FC<SVGCardProps> = ({ data, svgRef, selectedElement, onSele
       {/* JUGADOR POWERCLIP */}
       <g clipPath="url(#clip-player)" {...getHighlightProps('player')}>
         {data.images.player ? (
-          <g transform={`translate(${2326.47 + data.images.playerTransform.x}, ${2886.56 + data.images.playerTransform.y}) scale(${data.images.playerTransform.scale}) rotate(${data.images.playerTransform.rotate}) translate(-2326.47, -2886.56)`}>
+          <g id="PLAYER_GROUP" transform={`translate(${2326.47 + data.images.playerTransform.x}, ${2886.56 + data.images.playerTransform.y}) scale(${data.images.playerTransform.scale}) rotate(${data.images.playerTransform.rotate}) translate(-2326.47, -2886.56)`}>
             <image 
               id="JUGADOR" 
               x="-467.16" y="157.66" width="5587.26" height="5457.8" 
               href={data.images.player} 
+              filter={data.effects.playerRelief ? 'url(#player-relief)' : undefined}
             />
           </g>
         ) : (
@@ -205,7 +260,7 @@ const SVGCard: React.FC<SVGCardProps> = ({ data, svgRef, selectedElement, onSele
       {/* FLAG POWERCLIP */}
       <g clipPath="url(#clip-flag)" {...getHighlightProps('flag')}>
         {data.images.flag ? (
-          <g transform={`translate(${4452.11 + data.images.flagTransform.x}, ${4204.82 + data.images.flagTransform.y}) scale(${data.images.flagTransform.scale}) rotate(${data.images.flagTransform.rotate}) translate(-4452.11, -4204.82)`}>
+          <g id="FLAG_GROUP" transform={`translate(${4452.11 + data.images.flagTransform.x}, ${4204.82 + data.images.flagTransform.y}) scale(${data.images.flagTransform.scale}) rotate(${data.images.flagTransform.rotate}) translate(-4452.11, -4204.82)`}>
             <image 
               id="BANDRA_x0020_" 
               x="3898.83" y="3835.68" width="1106.56" height="738.28" 
@@ -230,7 +285,7 @@ const SVGCard: React.FC<SVGCardProps> = ({ data, svgRef, selectedElement, onSele
       {/* PANINI LOGO */}
       <g {...getHighlightProps('panini')} filter={data.effects.emboss ? 'url(#emboss-effect)' : undefined}>
         {data.images.panini ? (
-          <g transform={`translate(${4400 + data.images.paniniTransform.x}, ${6500 + data.images.paniniTransform.y}) scale(${data.images.paniniTransform.scale}) rotate(${data.images.paniniTransform.rotate}) translate(-4400, -6500)`}>
+          <g id="PANINI_GROUP" transform={`translate(${4400 + data.images.paniniTransform.x}, ${6500 + data.images.paniniTransform.y}) scale(${data.images.paniniTransform.scale}) rotate(${data.images.paniniTransform.rotate}) translate(-4400, -6500)`}>
             <image 
               x="3900" y="6250" width="1000" height="500" 
               preserveAspectRatio="xMidYMid meet"
@@ -301,6 +356,27 @@ const SVGCard: React.FC<SVGCardProps> = ({ data, svgRef, selectedElement, onSele
         >
           FANAS EDITION
         </text>
+      )}
+
+      {/* INTERNAL FOIL MASK OVERLAY */}
+      {showFoilInside && (
+        <foreignObject 
+          x={-data.layout.padding} 
+          y={-data.layout.padding} 
+          width={5020 + 2 * data.layout.padding} 
+          height={6758 + 2 * data.layout.padding}
+          clipPath={!masks.background ? 'url(#foil-clip)' : undefined}
+          style={{ pointerEvents: 'none' }}
+        >
+          <div 
+            className={`holofoil holofoil-${data.effects.foilType}`}
+            style={{ 
+              width: '100%', 
+              height: '100%',
+              opacity: data.effects.foilOpacity / 100 
+            }}
+          />
+        </foreignObject>
       )}
     </svg>
   );

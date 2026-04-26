@@ -334,6 +334,13 @@ export default function App() {
         foilPreviewRef.current.style.setProperty('--mx', mx);
         foilPreviewRef.current.style.setProperty('--my', my);
       }
+      // Update 3D Light Source for Player Depth Map
+      const lights = document.querySelectorAll('#player-light');
+      lights.forEach(light => {
+        light.setAttribute('x', String(x * 50.20)); // Map 0-100 to 0-5020 (SVG width)
+        light.setAttribute('y', String(y * 67.58)); // Map 0-100 to 0-6758 (SVG height)
+      });
+
       if (tiltEnabledRef.current || isDrag) {
         let tx = 0, ty = 0;
         if (!isDraggingRef.current && tiltEnabledRef.current) {
@@ -677,6 +684,7 @@ export default function App() {
                   <option value="prismatic">💎 Prismático (Crystal)</option>
                   <option value="lava">🔥 Lava (Fuego)</option>
                   <option value="aqua">🌊 Aqua (Agua)</option>
+                  <option value="shattered">🧊 Cristal Roto (Ice)</option>
                 </select>
               </div>
               <div>
@@ -690,11 +698,57 @@ export default function App() {
                   <option value="snow">❄️ Nieve (Snow)</option>
                   <option value="sparks">✨ Chispas (Sparks)</option>
                   <option value="confetti">🎉 Confeti (Confetti)</option>
+                  <option value="glimmers">🌟 Destellos (Glimmers)</option>
                 </select>
               </div>
             </div>
+            
+            {data.effects.particles && data.effects.particles !== 'none' && (
+              <div className="grid grid-cols-2 gap-3 p-3 bg-neutral-900/40 rounded border border-neutral-800">
+                <SliderField label="Densidad de Partículas" value={data.effects.particleDensity ?? 50} min={10} max={100} step={10} onChange={(v) => handleEffectChange('particleDensity', v)} />
+                <SliderField label="Velocidad (x)" value={data.effects.particleSpeed ?? 1} min={0.1} max={3} step={0.1} onChange={(v) => handleEffectChange('particleSpeed', v)} />
+              </div>
+            )}
+
+            <div className="flex items-center justify-between border-t border-neutral-800 pt-4 mt-2">
+              <label className="text-[10px] uppercase font-bold tracking-wider text-cyan-400">Relieve 3D (Cara Jugador)</label>
+              <input type="checkbox" checked={data.effects.playerRelief ?? false} onChange={(e) => handleEffectChange('playerRelief', e.target.checked)} className="accent-cyan-500" />
+            </div>
+
             {data.effects.foilType !== 'none' && (
-              <SliderField label="Intensidad del Brillo (%)" value={data.effects.foilOpacity} min={0} max={100} step={5} onChange={(v) => handleEffectChange('foilOpacity', v)} />
+              <>
+                <SliderField label="Intensidad del Brillo (%)" value={data.effects.foilOpacity} min={0} max={100} step={5} onChange={(v) => handleEffectChange('foilOpacity', v)} />
+                
+                <div className="mt-4 p-3 bg-neutral-900/50 rounded border border-neutral-800">
+                  <label className="text-[10px] uppercase font-bold tracking-wider text-cyan-500 mb-2 block">Zonas Holográficas</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="flex items-center gap-2 text-[10px] text-neutral-300">
+                      <input type="checkbox" checked={data.effects.foilMasks?.background ?? true} onChange={(e) => setData(p => ({...p, effects: {...p.effects, foilMasks: {...p.effects.foilMasks, background: e.target.checked}}}))} className="accent-cyan-500" />
+                      Fondo Completo
+                    </label>
+                    <label className="flex items-center gap-2 text-[10px] text-neutral-300">
+                      <input type="checkbox" checked={data.effects.foilMasks?.player ?? false} onChange={(e) => setData(p => ({...p, effects: {...p.effects, foilMasks: {...p.effects.foilMasks, player: e.target.checked}}}))} className="accent-cyan-500" disabled={data.effects.foilMasks?.background} />
+                      Silueta Jugador
+                    </label>
+                    <label className="flex items-center gap-2 text-[10px] text-neutral-300">
+                      <input type="checkbox" checked={data.effects.foilMasks?.shapes ?? false} onChange={(e) => setData(p => ({...p, effects: {...p.effects, foilMasks: {...p.effects.foilMasks, shapes: e.target.checked}}}))} className="accent-cyan-500" disabled={data.effects.foilMasks?.background} />
+                      Vectores (Fondo)
+                    </label>
+                    <label className="flex items-center gap-2 text-[10px] text-neutral-300">
+                      <input type="checkbox" checked={data.effects.foilMasks?.containers ?? false} onChange={(e) => setData(p => ({...p, effects: {...p.effects, foilMasks: {...p.effects.foilMasks, containers: e.target.checked}}}))} className="accent-cyan-500" disabled={data.effects.foilMasks?.background} />
+                      Cajas de Texto
+                    </label>
+                    <label className="flex items-center gap-2 text-[10px] text-neutral-300">
+                      <input type="checkbox" checked={data.effects.foilMasks?.texts ?? false} onChange={(e) => setData(p => ({...p, effects: {...p.effects, foilMasks: {...p.effects.foilMasks, texts: e.target.checked}}}))} className="accent-cyan-500" disabled={data.effects.foilMasks?.background} />
+                      Letras y Números
+                    </label>
+                    <label className="flex items-center gap-2 text-[10px] text-neutral-300">
+                      <input type="checkbox" checked={data.effects.foilMasks?.logos ?? false} onChange={(e) => setData(p => ({...p, effects: {...p.effects, foilMasks: {...p.effects.foilMasks, logos: e.target.checked}}}))} className="accent-cyan-500" disabled={data.effects.foilMasks?.background} />
+                      Logos y Bandera
+                    </label>
+                  </div>
+                </div>
+              </>
             )}
           </div>
         </Section>
@@ -1012,13 +1066,11 @@ export default function App() {
                     selectedElement={selectedElement}
                     onSelect={setSelectedElement}
                   />
-                  <Particles type={data.effects.particles || 'none'} />
-                  {data.effects.foilType !== 'none' && (
-                    <div
-                      className={`holofoil holofoil-${data.effects.foilType}`}
-                      style={{ opacity: isHovering ? data.effects.foilOpacity / 100 : 0 }}
-                    />
-                  )}
+                  <Particles 
+                    type={data.effects.particles || 'none'} 
+                    density={data.effects.particleDensity}
+                    speed={data.effects.particleSpeed}
+                  />
                 </div>
 
                 {/* PAPER THICKNESS EDGES */}

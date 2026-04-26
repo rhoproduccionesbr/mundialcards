@@ -196,3 +196,21 @@ body {
   90% { opacity: 1; }
   100% { transform: translate3d(var(--x-offset), 120vh, 30px) rotateX(720deg) rotateY(360deg) rotateZ(180deg); opacity: 0; }
 }
+
+@keyframes glimmerFade {
+  0% { transform: scale(0) rotate(0deg); opacity: 0; }
+  50% { transform: scale(1) rotate(180deg); opacity: var(--tw-bg-opacity, 1); }
+  100% { transform: scale(0) rotate(360deg); opacity: 0; }
+}
+
+/* SHATTERED GLASS FOIL */
+.holofoil-shattered {
+  background-image: 
+    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" opacity="0.3"><path d="M0 0l50 100 150-50M50 100l50 100M100 200l100-150" stroke="%23ffffff" fill="none" stroke-width="2"/><path d="M20 20l40 30-10 80M50 50l120 40" stroke="%23ffffff" fill="none" stroke-width="1"/></svg>'),
+    radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,0.9) 0%, rgba(150,220,255,0.4) 30%, transparent 60%),
+    linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%, rgba(0,200,255,0.2) 100%);
+  background-size: 200px 200px, 200% 200%, 100% 100%;
+  background-position: center, var(--mx, 50%) var(--my, 50%), center;
+  mix-blend-mode: color-dodge;
+  animation: none; /* Relies purely on mouse movement */
+}
