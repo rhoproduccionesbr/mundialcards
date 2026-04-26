@@ -1,9 +1,10 @@
 import React, { useState, useRef, ChangeEvent } from 'react';
-import { Download, RotateCcw, Upload, ChevronDown, ChevronRight, Palette, Image as ImageIcon, Type, Globe, Sparkles, Eye, X, Loader2 } from 'lucide-react';
+import { Download, RotateCcw, Upload, ChevronDown, ChevronRight, Palette, Image as ImageIcon, Type, Globe, Sparkles, Eye, X, Loader2, RefreshCcw, FlipHorizontal, Trash2, Plus, Save } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toPng } from 'html-to-image';
 import { CardData, INITIAL_CARD_DATA } from './types';
 import SVGCard from './components/SVGCard';
+import Particles from './components/Particles';
 
 const cardTemplates = [
   {
@@ -228,27 +229,30 @@ const Section: React.FC<{
 };
 
 export default function App() {
-  const [data, setData] = useState<CardData>(() => {
+  const [gallery, setGallery] = useState<CardData[]>(() => {
     try {
-      const saved = localStorage.getItem('paninicardmaker_data');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // Merge with initial data to ensure all new fields (like effects) exist
-        return {
-          ...INITIAL_CARD_DATA,
-          ...parsed,
-          effects: parsed.effects || INITIAL_CARD_DATA.effects,
-          colors: { ...INITIAL_CARD_DATA.colors, ...parsed.colors },
-          texts: { ...INITIAL_CARD_DATA.texts, ...parsed.texts },
-          images: { ...INITIAL_CARD_DATA.images, ...parsed.images },
-          layout: { ...INITIAL_CARD_DATA.layout, ...parsed.layout }
-        };
-      }
+      const saved = localStorage.getItem('paninicardmaker_gallery');
+      if (saved) return JSON.parse(saved);
     } catch (e) {
       console.warn('LocalStorage error', e);
     }
-    return INITIAL_CARD_DATA;
+    // Migration from old single project:
+    try {
+      const single = localStorage.getItem('paninicardmaker_data');
+      if (single) {
+        const parsed = JSON.parse(single);
+        return [{ 
+          ...INITIAL_CARD_DATA, 
+          ...parsed, 
+          id: Date.now().toString(),
+          name: parsed.name || 'Mi Tarjeta'
+        }];
+      }
+    } catch (e) {}
+    return [INITIAL_CARD_DATA];
   });
+
+  const [data, setData] = useState<CardData>(() => gallery[0] || INITIAL_CARD_DATA);
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const cardContainerRef = useRef<HTMLDivElement>(null);
@@ -264,14 +268,47 @@ export default function App() {
   const [isHovering, setIsHovering] = useState(false);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isFlipped, setIsFlipped] = useState(false);
 
+  const spinRef = useRef({ x: 0, y: 0 });
+  const isDraggingRef = useRef(false);
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const lastSpinRef = useRef({ x: 0, y: 0 });
+
+  // Auto-update the active card in the gallery list
+  React.useEffect(() => {
+    setGallery(prev => prev.map(p => p.id === data.id ? data : p));
+  }, [data]);
+
+  // Sync gallery to localStorage
   React.useEffect(() => {
     try {
-      localStorage.setItem('paninicardmaker_data', JSON.stringify(data));
+      localStorage.setItem('paninicardmaker_gallery', JSON.stringify(gallery));
     } catch (e) {
       console.warn('LocalStorage error (quota exceeded likely)', e);
     }
-  }, [data]);
+  }, [gallery]);
+
+  const loadProject = (id: string) => {
+    const proj = gallery.find(p => p.id === id);
+    if (proj) setData(proj);
+  };
+
+  const createNewProject = () => {
+    const newProj = { ...INITIAL_CARD_DATA, id: Date.now().toString(), name: `Tarjeta ${gallery.length + 1}` };
+    setGallery(prev => [newProj, ...prev]);
+    setData(newProj);
+  };
+
+  const deleteProject = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setGallery(prev => {
+      const filtered = prev.filter(p => p.id !== id);
+      const nextGallery = filtered.length === 0 ? [INITIAL_CARD_DATA] : filtered;
+      if (data.id === id) setData(nextGallery[0]);
+      return nextGallery;
+    });
+  };
 
   // Keep tiltEnabledRef in sync with data changes
   React.useEffect(() => {
@@ -283,43 +320,112 @@ export default function App() {
     }
   }, [data.effects.tiltEnabled]);
 
-  // rAF-throttled handler: zero React re-renders per mousemove
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
+  // ── Shared inner logic: apply foil + tilt from normalized x/y (0-100) ──
+  const applyEffects = (x: number, y: number, isDrag = false) => {
     cancelAnimationFrame(rafRef.current);
     rafRef.current = requestAnimationFrame(() => {
       const mx = `${x}%`;
       const my = `${y}%`;
-      // Update CSS custom props on foil overlays directly
-      if (foilMainRef.current) {
-        foilMainRef.current.style.setProperty('--mx', mx);
-        foilMainRef.current.style.setProperty('--my', my);
+      if (cardContainerRef.current) {
+        cardContainerRef.current.style.setProperty('--mx', mx);
+        cardContainerRef.current.style.setProperty('--my', my);
       }
       if (foilPreviewRef.current) {
         foilPreviewRef.current.style.setProperty('--mx', mx);
         foilPreviewRef.current.style.setProperty('--my', my);
       }
-      // Update 3D tilt transform directly on DOM
-      if (tiltEnabledRef.current) {
-        const tx = (50 - y) / 4;
-        const ty = -(50 - x) / 4;
-        const t = `rotateX(${tx}deg) rotateY(${ty}deg)`;
+      if (tiltEnabledRef.current || isDrag) {
+        let tx = 0, ty = 0;
+        if (!isDraggingRef.current && tiltEnabledRef.current) {
+           tx = (50 - y) / 4;
+           ty = -(50 - x) / 4;
+        }
+        const finalX = spinRef.current.x + tx;
+        const finalY = spinRef.current.y + ty;
+        const t = `rotateX(${finalX}deg) rotateY(${finalY}deg)`;
         if (cardWrapperMainRef.current) cardWrapperMainRef.current.style.transform = t;
         if (cardWrapperPreviewRef.current) cardWrapperPreviewRef.current.style.transform = t;
       }
     });
   };
 
-  const handleMouseLeave = () => {
-    setIsHovering(false);
+  const resetEffects = () => {
     cancelAnimationFrame(rafRef.current);
     requestAnimationFrame(() => {
-      const reset = 'rotateX(0deg) rotateY(0deg)';
-      if (cardWrapperMainRef.current) cardWrapperMainRef.current.style.transform = reset;
-      if (cardWrapperPreviewRef.current) cardWrapperPreviewRef.current.style.transform = reset;
+      const t = `rotateX(${spinRef.current.x}deg) rotateY(${spinRef.current.y}deg)`;
+      if (cardWrapperMainRef.current) cardWrapperMainRef.current.style.transform = t;
+      if (cardWrapperPreviewRef.current) cardWrapperPreviewRef.current.style.transform = t;
     });
+  };
+
+  // ── Drag & Spin handlers ──
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    isDraggingRef.current = true;
+    dragStartRef.current = { x: e.clientX, y: e.clientY };
+    lastSpinRef.current = { x: spinRef.current.x, y: spinRef.current.y };
+    setIsHovering(true);
+    
+    if (cardWrapperMainRef.current) cardWrapperMainRef.current.classList.add('is-dragging');
+    if (cardWrapperPreviewRef.current) cardWrapperPreviewRef.current.classList.add('is-dragging');
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    if (isDraggingRef.current) {
+      const deltaX = e.clientX - dragStartRef.current.x;
+      const deltaY = e.clientY - dragStartRef.current.y;
+      
+      spinRef.current.y = lastSpinRef.current.y + deltaX * 0.5;
+      spinRef.current.x = lastSpinRef.current.x - deltaY * 0.5;
+      
+      applyEffects(x, y, true);
+    } else {
+      applyEffects(x, y);
+    }
+  };
+
+  const snapToFace = () => {
+    const targetY = Math.round(spinRef.current.y / 180) * 180;
+    spinRef.current.y = targetY;
+    spinRef.current.x = 0; 
+    
+    const isBackFace = (Math.abs(targetY / 180) % 2) === 1;
+    if (isFlipped !== isBackFace) setIsFlipped(isBackFace);
+    
+    resetEffects();
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (isDraggingRef.current) {
+      isDraggingRef.current = false;
+      e.currentTarget.releasePointerCapture(e.pointerId);
+      
+      if (cardWrapperMainRef.current) cardWrapperMainRef.current.classList.remove('is-dragging');
+      if (cardWrapperPreviewRef.current) cardWrapperPreviewRef.current.classList.remove('is-dragging');
+      
+      snapToFace();
+    }
+    setIsHovering(false);
+  };
+
+  const handlePointerLeave = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDraggingRef.current) {
+      setIsHovering(false);
+      resetEffects();
+    }
+  };
+
+  const handleFlipButton = () => {
+    const nextFlipped = !isFlipped;
+    setIsFlipped(nextFlipped);
+    spinRef.current.y = nextFlipped ? 180 : 0;
+    spinRef.current.x = 0;
+    resetEffects();
   };
 
   const applyTemplate = (templateId: string) => {
@@ -357,7 +463,7 @@ export default function App() {
     }
   };
 
-  const handleTransformChange = (key: 'playerTransform' | 'flagTransform' | 'paniniTransform', field: 'scale' | 'rotate' | 'x' | 'y', value: number) => {
+  const handleTransformChange = (key: 'playerTransform' | 'flagTransform' | 'paniniTransform' | 'backCardTransform', field: 'scale' | 'rotate' | 'x' | 'y', value: number) => {
     setData(prev => ({
       ...prev,
       images: {
@@ -475,6 +581,47 @@ export default function App() {
   const renderAllControls = () => {
     return (
       <div className="space-y-4 pb-12">
+        {/* GALERÍA / MIS CARTAS */}
+        <Section title="Mis Cartas (Galería)" icon={Save} defaultOpen={true}>
+          <div className="mb-4">
+            <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest block mb-2">Nombre de la Tarjeta</label>
+            <input 
+              type="text" 
+              value={data.name || ''} 
+              onChange={(e) => setData(prev => ({ ...prev, name: e.target.value }))}
+              className="w-full bg-neutral-950 border border-neutral-800 rounded px-2 py-2 text-xs text-white outline-none focus:border-cyan-500 transition-colors"
+              placeholder="Ej: Messi TOTS"
+            />
+          </div>
+          <div className="bg-neutral-900/50 rounded-lg p-2 border border-neutral-800 max-h-48 overflow-y-auto custom-scrollbar">
+            {gallery.map(proj => (
+              <div 
+                key={proj.id} 
+                className={`flex items-center justify-between p-2 rounded mb-1 cursor-pointer transition-colors ${proj.id === data.id ? 'bg-cyan-500/20 border border-cyan-500/30' : 'hover:bg-neutral-800'}`}
+                onClick={() => loadProject(proj.id)}
+              >
+                <div className="flex flex-col truncate pr-2">
+                  <span className="text-xs font-bold truncate text-white">{proj.name || 'Sin nombre'}</span>
+                  <span className="text-[9px] text-neutral-500 uppercase">{proj.texts.lastName || 'Desconocido'}</span>
+                </div>
+                <button 
+                  onClick={(e) => deleteProject(proj.id, e)}
+                  className="p-1.5 text-neutral-500 hover:text-red-400 hover:bg-neutral-800 rounded transition-colors"
+                  title="Eliminar"
+                >
+                  <Trash2 size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+          <button 
+            onClick={createNewProject}
+            className="w-full mt-2 py-2 flex items-center justify-center gap-2 bg-neutral-800 hover:bg-neutral-700 text-cyan-400 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors"
+          >
+            <Plus size={14} /> Crear Nueva Tarjeta
+          </button>
+        </Section>
+
         <Section title="Background & Layout" icon={Palette} defaultOpen={selectedElement === 'canvas' || selectedElement === null}>
           <div className="mb-4">
             <label className="text-[10px] uppercase font-bold tracking-wider text-neutral-500 mb-1 block">Plantilla Visual</label>
@@ -514,22 +661,37 @@ export default function App() {
               <label className="text-[10px] uppercase font-bold tracking-wider text-neutral-400">Movimiento 3D (Tilt)</label>
               <input type="checkbox" checked={data.effects.tiltEnabled} onChange={(e) => handleEffectChange('tiltEnabled', e.target.checked)} className="accent-cyan-500" />
             </div>
-            <div>
-              <label className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 block mb-1">Estilo Holográfico</label>
-              <select 
-                className="w-full bg-neutral-950 border border-neutral-800 rounded px-2 py-2 text-xs text-white outline-none focus:border-cyan-500 transition-colors appearance-none"
-                value={data.effects.foilType}
-                onChange={(e) => handleEffectChange('foilType', e.target.value)}
-              >
-                <option value="none">✦ Sin brillo</option>
-                <option value="rainbow">🌈 Arcoíris (Rainbow)</option>
-                <option value="gold">🥇 Dorado (Gold)</option>
-                <option value="chrome">🪞 Plateado (Chrome)</option>
-                <option value="cosmos">🌌 Cosmos / Galaxia</option>
-                <option value="prismatic">💎 Prismático (Crystal)</option>
-                <option value="lava">🔥 Lava (Fuego)</option>
-                <option value="aqua">🌊 Aqua (Agua)</option>
-              </select>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 block mb-1">Holograma</label>
+                <select 
+                  className="w-full bg-neutral-950 border border-neutral-800 rounded px-2 py-2 text-xs text-white outline-none focus:border-cyan-500 transition-colors appearance-none"
+                  value={data.effects.foilType}
+                  onChange={(e) => handleEffectChange('foilType', e.target.value)}
+                >
+                  <option value="none">✦ Sin brillo</option>
+                  <option value="rainbow">🌈 Arcoíris (Rainbow)</option>
+                  <option value="gold">🥇 Dorado (Gold)</option>
+                  <option value="chrome">🪞 Plateado (Chrome)</option>
+                  <option value="cosmos">🌌 Cosmos / Galaxia</option>
+                  <option value="prismatic">💎 Prismático (Crystal)</option>
+                  <option value="lava">🔥 Lava (Fuego)</option>
+                  <option value="aqua">🌊 Aqua (Agua)</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 block mb-1">Partículas</label>
+                <select 
+                  className="w-full bg-neutral-950 border border-neutral-800 rounded px-2 py-2 text-xs text-white outline-none focus:border-cyan-500 transition-colors appearance-none"
+                  value={data.effects.particles || 'none'}
+                  onChange={(e) => handleEffectChange('particles', e.target.value)}
+                >
+                  <option value="none">Ninguna</option>
+                  <option value="snow">❄️ Nieve (Snow)</option>
+                  <option value="sparks">✨ Chispas (Sparks)</option>
+                  <option value="confetti">🎉 Confeti (Confetti)</option>
+                </select>
+              </div>
             </div>
             {data.effects.foilType !== 'none' && (
               <SliderField label="Intensidad del Brillo (%)" value={data.effects.foilOpacity} min={0} max={100} step={5} onChange={(v) => handleEffectChange('foilOpacity', v)} />
@@ -554,6 +716,18 @@ export default function App() {
             <SliderField label="Rotation" value={data.images.playerTransform.rotate} min={-180} max={180} step={1} onChange={(v) => handleTransformChange('playerTransform', 'rotate', v)} />
             <SliderField label="Pos X" value={data.images.playerTransform.x} min={-1000} max={1000} step={10} onChange={(v) => handleTransformChange('playerTransform', 'x', v)} />
             <SliderField label="Pos Y" value={data.images.playerTransform.y} min={-1000} max={1000} step={10} onChange={(v) => handleTransformChange('playerTransform', 'y', v)} />
+          </div>
+        </Section>
+
+        <Section title="Dorso (Back Card)" icon={FlipHorizontal} defaultOpen={selectedElement === 'back'}>
+          <div className="mb-4 text-xs">
+            <MediaField label="Back Image" hasImage={!!data.images.backCard} onUpload={(e) => handleImageUpload('backCard', e)} />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <SliderField label="Zoom" value={data.images.backCardTransform.scale} min={0.1} max={5} step={0.1} onChange={(v) => handleTransformChange('backCardTransform', 'scale', v)} />
+            <SliderField label="Rotation" value={data.images.backCardTransform.rotate} min={-180} max={180} step={1} onChange={(v) => handleTransformChange('backCardTransform', 'rotate', v)} />
+            <SliderField label="Pos X" value={data.images.backCardTransform.x} min={-2000} max={2000} step={10} onChange={(v) => handleTransformChange('backCardTransform', 'x', v)} />
+            <SliderField label="Pos Y" value={data.images.backCardTransform.y} min={-2000} max={2000} step={10} onChange={(v) => handleTransformChange('backCardTransform', 'y', v)} />
           </div>
         </Section>
 
@@ -639,6 +813,8 @@ export default function App() {
     );
   };
 
+  const cardAspect = `${5020 + 2 * (data.layout.padding || 0)} / ${6758 + 2 * (data.layout.padding || 0)}`;
+
   return (
     <div className="flex flex-col w-full h-screen bg-neutral-950 text-neutral-200 overflow-hidden font-sans">
       {/* Full-Screen Preview Overlay */}
@@ -663,25 +839,71 @@ export default function App() {
             >
               <div 
                 ref={cardWrapperPreviewRef}
-                className="card-3d-wrapper relative max-w-full max-h-full aspect-[5020/6758] mx-auto shrink-0"
-                style={{ height: '100%' }}
+                className="card-3d-wrapper relative w-full h-auto md:w-auto md:h-full max-w-full max-h-full mx-auto shrink-0"
+                style={{ aspectRatio: cardAspect }}
               >
                 <div className="absolute inset-0 bg-cyan-500/10 blur-[100px] rounded-full pointer-events-none opacity-50 block m-auto" style={{ transform: 'translateZ(-50px)' }}></div>
                 <div 
-                  onMouseMove={handleMouseMove}
-                  onMouseEnter={() => setIsHovering(true)}
-                  onMouseLeave={handleMouseLeave}
-                  className="relative group p-1 bg-white/5 backdrop-blur-sm shadow-2xl border border-white/10 overflow-hidden w-full h-full flex items-center justify-center rounded-[3%]"
-                  style={{ boxShadow: data.effects.emboss ? 'inset 0 0 10px rgba(0,0,0,0.5), 0 20px 40px rgba(0,0,0,0.4)' : 'none' }}
+                  onPointerDown={handlePointerDown}
+                  onPointerMove={handlePointerMove}
+                  onPointerUp={handlePointerUp}
+                  onPointerCancel={handlePointerUp}
+                  onPointerLeave={handlePointerLeave}
+                  className="relative group w-full h-full card-touch-area"
                 >
-                  <SVGCard data={data} svgRef={svgRef} />
-                  {data.effects.foilType !== 'none' && (
-                    <div
-                      ref={foilPreviewRef}
-                      className={`holofoil holofoil-${data.effects.foilType}`}
-                      style={{ opacity: isHovering ? data.effects.foilOpacity / 100 : 0 }}
-                    />
-                  )}
+                  {/* FRONT FACE */}
+                  <div 
+                    className="card-face card-front p-1 bg-white/5 backdrop-blur-sm shadow-2xl border border-white/10 overflow-hidden flex items-center justify-center"
+                    style={{ 
+                      boxShadow: data.effects.emboss ? 'inset 0 0 10px rgba(0,0,0,0.5), 0 20px 40px rgba(0,0,0,0.4)' : 'none',
+                      transform: data.effects.tiltEnabled ? 'rotateY(0deg) translateZ(1px)' : 'rotateY(0deg)'
+                    }}
+                  >
+                    <SVGCard data={data} svgRef={svgRef} />
+                    <Particles type={data.effects.particles || 'none'} />
+                    {data.effects.foilType !== 'none' && (
+                      <div
+                        className={`holofoil holofoil-${data.effects.foilType}`}
+                        style={{ opacity: isHovering ? data.effects.foilOpacity / 100 : 0 }}
+                      />
+                    )}
+                  </div>
+                  
+                  {/* PAPER THICKNESS EDGES */}
+                  {data.effects.tiltEnabled && [-0.6, -0.3, 0, 0.3, 0.6].map((z, i) => (
+                    <div key={i} className="card-face bg-neutral-300" style={{ transform: `translateZ(${z}px)` }}></div>
+                  ))}
+
+                  {/* BACK FACE */}
+                  <div 
+                    className="card-face card-back p-1 bg-neutral-900 shadow-2xl border border-white/10 overflow-hidden flex items-center justify-center"
+                    style={{ 
+                      boxShadow: data.effects.emboss ? 'inset 0 0 10px rgba(0,0,0,0.5), 0 20px 40px rgba(0,0,0,0.4)' : 'none',
+                      transform: data.effects.tiltEnabled ? 'rotateY(180deg) translateZ(1px)' : 'rotateY(180deg)'
+                    }}
+                  >
+                     <div className="w-full h-full rounded-[2.5%] overflow-hidden relative bg-black">
+                       {data.images.backCard ? (
+                          <div style={{
+                            width: '100%', height: '100%',
+                            transform: `translate(${data.images.backCardTransform.x}px, ${data.images.backCardTransform.y}px) scale(${data.images.backCardTransform.scale}) rotate(${data.images.backCardTransform.rotate}deg)`
+                          }}>
+                            <img src={data.images.backCard} style={{width: '100%', height: '100%', objectFit: 'cover'}} alt="Dorso" />
+                          </div>
+                       ) : (
+                          <div className="w-full h-full flex flex-col items-center justify-center text-neutral-600 bg-neutral-900 gap-4">
+                            <ImageIcon size={48} opacity={0.5} />
+                          </div>
+                       )}
+                     </div>
+                     <Particles type={data.effects.particles || 'none'} />
+                     {data.effects.foilType !== 'none' && (
+                      <div
+                        className={`holofoil holofoil-${data.effects.foilType}`}
+                        style={{ opacity: isHovering ? data.effects.foilOpacity / 100 : 0 }}
+                      />
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -709,6 +931,13 @@ export default function App() {
             title="Reset All"
           >
             <RotateCcw size={18} />
+          </button>
+          <button 
+            onClick={handleFlipButton}
+            className="flex items-center gap-2 px-3 sm:px-4 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-colors"
+          >
+            <RefreshCcw size={14} />
+            <span className="hidden sm:inline">Girar</span>
           </button>
           <button 
             onClick={() => setIsPreviewMode(true)}
@@ -754,33 +983,80 @@ export default function App() {
         <main className="flex-1 relative flex items-center justify-center transition-all duration-[400ms] ease-[cubic-bezier(0.25,1,0.5,1)] bg-[radial-gradient(circle_at_center,rgba(8,145,178,0.05)_0%,rgba(0,0,0,1)_100%)] p-4 md:p-8" style={{ perspective: '1500px' }}>
             <div 
               ref={cardWrapperMainRef}
-              className="card-3d-wrapper relative h-full max-h-[85vh] max-w-full aspect-[5020/6758] active:scale-[0.98] mx-auto flex items-center justify-center shrink-0"
+              className="card-3d-wrapper relative w-full h-auto md:w-auto md:h-full max-h-[85vh] max-w-full active:scale-[0.98] mx-auto flex items-center justify-center shrink-0"
+              style={{ aspectRatio: cardAspect }}
             >
               {/* Decorative glow */}
               <div className="absolute inset-0 bg-cyan-500/10 blur-[100px] rounded-full pointer-events-none opacity-50 block m-auto" style={{ transform: 'translateZ(-50px)' }}></div>
               
               <div 
                 ref={cardContainerRef}
-                onMouseMove={handleMouseMove}
-                onMouseEnter={() => setIsHovering(true)}
-                onMouseLeave={handleMouseLeave}
-                className="relative group p-1 bg-white/5 backdrop-blur-sm shadow-2xl border border-white/10 overflow-hidden w-full h-full flex items-center justify-center rounded-[3%]"
-                style={{ boxShadow: data.effects.emboss ? 'inset 0 0 10px rgba(0,0,0,0.5), 0 20px 40px rgba(0,0,0,0.4)' : 'none' }}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerCancel={handlePointerUp}
+                onPointerLeave={handlePointerLeave}
+                className="relative group w-full h-full card-touch-area"
               >
-                <SVGCard 
-                  data={data} 
-                  svgRef={svgRef} 
-                  selectedElement={selectedElement}
-                  onSelect={setSelectedElement}
-                />
-                {/* Foil Holographic Overlay — CSS class-driven, updated via setProperty */}
-                {data.effects.foilType !== 'none' && (
-                  <div
-                    ref={foilMainRef}
-                    className={`holofoil holofoil-${data.effects.foilType}`}
-                    style={{ opacity: isHovering ? data.effects.foilOpacity / 100 : 0 }}
+                {/* FRONT FACE */}
+                <div 
+                  className="card-face card-front p-1 bg-white/5 backdrop-blur-sm shadow-2xl border border-white/10 overflow-hidden flex items-center justify-center"
+                  style={{ 
+                    boxShadow: data.effects.emboss ? 'inset 0 0 10px rgba(0,0,0,0.5), 0 20px 40px rgba(0,0,0,0.4)' : 'none',
+                    transform: data.effects.tiltEnabled ? 'rotateY(0deg) translateZ(1px)' : 'rotateY(0deg)'
+                  }}
+                >
+                  <SVGCard 
+                    data={data} 
+                    svgRef={svgRef} 
+                    selectedElement={selectedElement}
+                    onSelect={setSelectedElement}
                   />
-                )}
+                  <Particles type={data.effects.particles || 'none'} />
+                  {data.effects.foilType !== 'none' && (
+                    <div
+                      className={`holofoil holofoil-${data.effects.foilType}`}
+                      style={{ opacity: isHovering ? data.effects.foilOpacity / 100 : 0 }}
+                    />
+                  )}
+                </div>
+
+                {/* PAPER THICKNESS EDGES */}
+                {data.effects.tiltEnabled && [-0.6, -0.3, 0, 0.3, 0.6].map((z, i) => (
+                  <div key={i} className="card-face bg-neutral-300" style={{ transform: `translateZ(${z}px)` }}></div>
+                ))}
+
+                {/* BACK FACE */}
+                <div 
+                  className="card-face card-back p-1 bg-neutral-900 shadow-2xl border border-white/10 overflow-hidden flex items-center justify-center"
+                  style={{ 
+                    boxShadow: data.effects.emboss ? 'inset 0 0 10px rgba(0,0,0,0.5), 0 20px 40px rgba(0,0,0,0.4)' : 'none',
+                    transform: data.effects.tiltEnabled ? 'rotateY(180deg) translateZ(1px)' : 'rotateY(180deg)'
+                  }}
+                >
+                   <div className="w-full h-full rounded-[2.5%] overflow-hidden relative bg-black">
+                     {data.images.backCard ? (
+                        <div style={{
+                          width: '100%', height: '100%',
+                          transform: `translate(${data.images.backCardTransform.x}px, ${data.images.backCardTransform.y}px) scale(${data.images.backCardTransform.scale}) rotate(${data.images.backCardTransform.rotate}deg)`
+                        }}>
+                          <img src={data.images.backCard} style={{width: '100%', height: '100%', objectFit: 'cover'}} alt="Dorso" />
+                        </div>
+                     ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center text-neutral-600 bg-neutral-900 gap-4">
+                          <ImageIcon size={48} opacity={0.5} />
+                          <span className="text-sm font-bold uppercase tracking-widest">Sin Dorso</span>
+                        </div>
+                     )}
+                   </div>
+                   <Particles type={data.effects.particles || 'none'} />
+                   {data.effects.foilType !== 'none' && (
+                    <div
+                      className={`holofoil holofoil-${data.effects.foilType}`}
+                      style={{ opacity: isHovering ? data.effects.foilOpacity / 100 : 0 }}
+                    />
+                  )}
+                </div>
               </div>
             </div>
           

@@ -37,11 +37,38 @@ body {
   will-change: transform;
   transform-style: preserve-3d;
   transform: rotateX(0deg) rotateY(0deg);
-  transition: transform 0.5s ease;
-  backface-visibility: hidden;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.card-3d-wrapper.is-hovering {
+.card-3d-wrapper.is-dragging {
   transition: none;
+}
+
+/* ─── FRONT & BACK FACES ─── */
+.card-face {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform-style: preserve-3d;
+  border-radius: 3%;
+}
+.card-front {
+  transform: rotateY(0deg);
+}
+.card-back {
+  transform: rotateY(180deg);
+}
+
+/* ─── TOUCH INTERACTION AREA ─── */
+/* Prevents the browser from scrolling the page while the finger
+   is dragging over the card, so touch events fire consistently */
+.card-touch-area {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  transform-style: preserve-3d;
 }
 
 /* ─── HOLOFOIL BASE ─── */
@@ -141,4 +168,31 @@ body {
 @keyframes aqua-wave {
   0%, 100% { filter: hue-rotate(0deg)   brightness(1.1); }
   50%       { filter: hue-rotate(30deg)  brightness(1.3); }
+}
+
+/* ─── NATIVE PARTICLES ─── */
+.particle-anim {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+@keyframes snowFall {
+  0% { transform: translate3d(0, 0, 10px) rotate(0deg); opacity: 0; }
+  10% { opacity: var(--tw-bg-opacity, 1); }
+  90% { opacity: var(--tw-bg-opacity, 1); }
+  100% { transform: translate3d(var(--x-offset), 120vh, 10px) rotate(360deg); opacity: 0; }
+}
+
+@keyframes sparkRise {
+  0% { transform: translate3d(0, 0, 20px) scaleY(1); opacity: 0; }
+  20% { opacity: var(--tw-bg-opacity, 1); }
+  80% { opacity: var(--tw-bg-opacity, 1); }
+  100% { transform: translate3d(var(--x-offset), -120vh, 20px) scaleY(2); opacity: 0; }
+}
+
+@keyframes confettiFall {
+  0% { transform: translate3d(0, 0, 30px) rotateX(0deg) rotateY(0deg) rotateZ(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translate3d(var(--x-offset), 120vh, 30px) rotateX(720deg) rotateY(360deg) rotateZ(180deg); opacity: 0; }
 }

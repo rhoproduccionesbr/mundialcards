@@ -1,6 +1,9 @@
 import paniniLogo from './logo-panini-256.png';
+import backCardImg from './backcard.png';
 
 export interface CardData {
+  id: string;
+  name: string;
   colors: {
     fondo: string;
     dos: string;
@@ -43,6 +46,13 @@ export interface CardData {
       x: number;
       y: number;
     };
+    backCard: string | null;
+    backCardTransform: {
+      scale: number;
+      rotate: number;
+      x: number;
+      y: number;
+    };
   };
   layout: {
     padding: number;
@@ -75,10 +85,13 @@ export interface CardData {
     foilOpacity: number;
     emboss: boolean;
     tiltEnabled: boolean;
+    particles: 'none' | 'snow' | 'sparks' | 'confetti';
   };
 }
 
 export const INITIAL_CARD_DATA: CardData = {
+  id: 'default',
+  name: 'Nueva Tarjeta',
   colors: {
     fondo: '#42C4C6',
     dos: '#21774E',
@@ -106,6 +119,8 @@ export const INITIAL_CARD_DATA: CardData = {
     flagTransform: { scale: 1, rotate: 0, x: 0, y: 0 },
     panini: paniniLogo,
     paniniTransform: { scale: 2.5, rotate: 0, x: -195, y: 35 },
+    backCard: backCardImg,
+    backCardTransform: { scale: 1, rotate: 0, x: 0, y: 0 },
   },
   layout: {
     padding: 70,
@@ -138,5 +153,6 @@ export const INITIAL_CARD_DATA: CardData = {
     foilOpacity: 50,
     emboss: true,
     tiltEnabled: true,
+    particles: 'none',
   },
 };
