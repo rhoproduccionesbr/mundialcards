@@ -31,3 +31,114 @@ body {
   color: var(--text);
   font-family: var(--font-sans);
 }
+
+/* ─── GPU-ACCELERATED 3D CARD WRAPPER ─── */
+.card-3d-wrapper {
+  will-change: transform;
+  transform-style: preserve-3d;
+  transform: rotateX(0deg) rotateY(0deg);
+  transition: transform 0.5s ease;
+  backface-visibility: hidden;
+}
+.card-3d-wrapper.is-hovering {
+  transition: none;
+}
+
+/* ─── HOLOFOIL BASE ─── */
+.holofoil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 3%;
+  will-change: opacity, background-position, filter;
+  transform: translateZ(2px);
+  backface-visibility: hidden;
+  transition: opacity 0.25s ease;
+}
+
+/* RAINBOW */
+.holofoil-rainbow {
+  background-image:
+    radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 40%),
+    linear-gradient(115deg, transparent 20%, rgba(255,215,0,0.55) 30%, rgba(255,0,128,0.55) 50%, rgba(0,255,255,0.55) 70%, transparent 80%);
+  background-size: 200% 200%;
+  background-position: var(--mx, 50%) var(--my, 50%);
+  mix-blend-mode: color-dodge;
+}
+
+/* GOLD */
+.holofoil-gold {
+  background-image:
+    radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255,235,100,0.95) 0%, rgba(184,134,11,0.55) 35%, transparent 70%),
+    linear-gradient(115deg, transparent 20%, rgba(255,248,180,0.4) 40%, rgba(218,165,32,0.65) 60%, transparent 80%);
+  background-size: 200% 200%;
+  background-position: var(--mx, 50%) var(--my, 50%);
+  mix-blend-mode: color-dodge;
+}
+
+/* CHROME */
+.holofoil-chrome {
+  background-image:
+    radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,0.95) 0%, rgba(210,210,210,0.5) 30%, transparent 70%),
+    linear-gradient(115deg, transparent 20%, rgba(255,255,255,0.6) 40%, rgba(160,160,160,0.4) 60%, transparent 80%);
+  background-size: 200% 200%;
+  background-position: var(--mx, 50%) var(--my, 50%);
+  mix-blend-mode: color-dodge;
+}
+
+/* COSMOS */
+.holofoil-cosmos {
+  background-image:
+    radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,0.9) 0%, rgba(180,0,255,0.35) 22%, rgba(0,255,255,0.35) 44%, transparent 70%),
+    radial-gradient(ellipse at 30% 70%, rgba(255,0,180,0.2) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 20%, rgba(0,180,255,0.2) 0%, transparent 50%);
+  background-size: 200% 200%, 100% 100%, 100% 100%;
+  background-position: var(--mx, 50%) var(--my, 50%), center, center;
+  mix-blend-mode: screen;
+}
+
+/* PRISMATIC — animated hue rotation */
+.holofoil-prismatic {
+  background-image:
+    radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,1) 0%, rgba(255,0,128,0.65) 20%, rgba(0,255,200,0.55) 40%, rgba(120,0,255,0.45) 60%, transparent 80%),
+    linear-gradient(135deg, #ff006644, #00ff9944, #0066ff44, #ff006644);
+  background-size: 200% 200%, 300% 300%;
+  background-position: var(--mx, 50%) var(--my, 50%), center;
+  mix-blend-mode: color-dodge;
+  animation: prismatic-shift 3.5s linear infinite;
+}
+@keyframes prismatic-shift {
+  0%   { filter: hue-rotate(0deg)   saturate(1.8) brightness(1.1); }
+  50%  { filter: hue-rotate(180deg) saturate(2.2) brightness(1.2); }
+  100% { filter: hue-rotate(360deg) saturate(1.8) brightness(1.1); }
+}
+
+/* LAVA */
+.holofoil-lava {
+  background-image:
+    radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255,220,50,0.95) 0%, rgba(255,80,0,0.75) 28%, rgba(180,0,0,0.5) 55%, transparent 80%),
+    linear-gradient(115deg, transparent 15%, rgba(255,100,0,0.45) 40%, rgba(255,200,0,0.55) 60%, transparent 85%);
+  background-size: 200% 200%;
+  background-position: var(--mx, 50%) var(--my, 50%);
+  mix-blend-mode: color-dodge;
+  animation: lava-pulse 2s ease-in-out infinite;
+}
+@keyframes lava-pulse {
+  0%, 100% { filter: brightness(1)   saturate(1.6); }
+  50%       { filter: brightness(1.4) saturate(2.2); }
+}
+
+/* AQUA */
+.holofoil-aqua {
+  background-image:
+    radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(100,255,255,0.9) 0%, rgba(0,180,255,0.6) 30%, rgba(0,80,200,0.4) 60%, transparent 80%),
+    linear-gradient(115deg, transparent 20%, rgba(0,255,220,0.4) 45%, rgba(0,150,255,0.5) 65%, transparent 85%);
+  background-size: 200% 200%;
+  background-position: var(--mx, 50%) var(--my, 50%);
+  mix-blend-mode: color-dodge;
+  animation: aqua-wave 3s ease-in-out infinite;
+}
+@keyframes aqua-wave {
+  0%, 100% { filter: hue-rotate(0deg)   brightness(1.1); }
+  50%       { filter: hue-rotate(30deg)  brightness(1.3); }
+}

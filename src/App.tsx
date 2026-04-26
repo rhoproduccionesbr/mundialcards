@@ -8,34 +8,29 @@ import SVGCard from './components/SVGCard';
 const cardTemplates = [
   {
     id: 'default',
-    name: 'Estándar',
+    name: '⚽ Estándar',
     colors: INITIAL_CARD_DATA.colors,
     effects: INITIAL_CARD_DATA.effects
   },
   {
     id: 'gold',
-    name: 'Oro (Gold)',
+    name: '🥇 Oro (Gold)',
     colors: {
       ...INITIAL_CARD_DATA.colors,
-      fondo: '#B8860B', // Dark goldenrod
-      inter: '#DAA520', // Goldenrod
-      dos: '#FFD700', // Gold
-      seis: '#FFF8DC', // Cornsilk
+      fondo: '#B8860B',
+      inter: '#DAA520',
+      dos: '#FFD700',
+      seis: '#FFF8DC',
       nombreBg: '#8B6508',
       clubBg: '#B8860B',
       fifaLogo: '#FFFFFF',
       paisStroke: '#FFFFFF'
     },
-    effects: {
-      foilType: 'gold',
-      foilOpacity: 60,
-      emboss: true,
-      tiltEnabled: true
-    }
+    effects: { foilType: 'gold', foilOpacity: 65, emboss: true, tiltEnabled: true }
   },
   {
     id: 'totw',
-    name: 'TOTW (In Form)',
+    name: '🖤 TOTW (In Form)',
     colors: {
       ...INITIAL_CARD_DATA.colors,
       fondo: '#111111',
@@ -47,33 +42,151 @@ const cardTemplates = [
       fifaLogo: '#FFFFFF',
       paisStroke: '#000000'
     },
-    effects: {
-      foilType: 'chrome',
-      foilOpacity: 50,
-      emboss: true,
-      tiltEnabled: true
-    }
+    effects: { foilType: 'chrome', foilOpacity: 55, emboss: true, tiltEnabled: true }
   },
   {
     id: 'icon',
-    name: 'Icono',
+    name: '⭐ Icono',
     colors: {
       ...INITIAL_CARD_DATA.colors,
       fondo: '#FFFFFF',
       inter: '#F0F0F0',
-      dos: '#D4AF37', // Gold metallic
+      dos: '#D4AF37',
       seis: '#000000',
       nombreBg: '#FFFFFF',
       clubBg: '#F0F0F0',
       fifaLogo: '#000000',
       paisStroke: '#000000'
     },
-    effects: {
-      foilType: 'rainbow',
-      foilOpacity: 30,
-      emboss: true,
-      tiltEnabled: true
-    }
+    effects: { foilType: 'rainbow', foilOpacity: 35, emboss: true, tiltEnabled: true }
+  },
+  {
+    id: 'heroes',
+    name: '🦸 FUT Heroes',
+    colors: {
+      ...INITIAL_CARD_DATA.colors,
+      fondo: '#2D0E4F',
+      inter: '#5B1F8A',
+      dos: '#8B3CF7',
+      seis: '#C084FC',
+      nombreBg: '#1A0A30',
+      clubBg: '#2D0E4F',
+      fifaLogo: '#C084FC',
+      paisStroke: '#C084FC'
+    },
+    effects: { foilType: 'prismatic', foilOpacity: 70, emboss: true, tiltEnabled: true }
+  },
+  {
+    id: 'fut_future',
+    name: '⚡ FUT Future',
+    colors: {
+      ...INITIAL_CARD_DATA.colors,
+      fondo: '#001B3D',
+      inter: '#0038A8',
+      dos: '#00B4FF',
+      seis: '#00EEFF',
+      nombreBg: '#001530',
+      clubBg: '#001B3D',
+      fifaLogo: '#00EEFF',
+      paisStroke: '#00EEFF'
+    },
+    effects: { foilType: 'aqua', foilOpacity: 65, emboss: true, tiltEnabled: true }
+  },
+  {
+    id: 'tott',
+    name: '🏆 TOTT',
+    colors: {
+      ...INITIAL_CARD_DATA.colors,
+      fondo: '#0A2E1A',
+      inter: '#1A5C35',
+      dos: '#2ECC71',
+      seis: '#A8FF78',
+      nombreBg: '#082414',
+      clubBg: '#0A2E1A',
+      fifaLogo: '#A8FF78',
+      paisStroke: '#A8FF78'
+    },
+    effects: { foilType: 'rainbow', foilOpacity: 55, emboss: true, tiltEnabled: true }
+  },
+  {
+    id: 'silver',
+    name: '🥈 Plata (Silver)',
+    colors: {
+      ...INITIAL_CARD_DATA.colors,
+      fondo: '#737373',
+      inter: '#A3A3A3',
+      dos: '#D4D4D4',
+      seis: '#F5F5F5',
+      nombreBg: '#525252',
+      clubBg: '#616161',
+      fifaLogo: '#FFFFFF',
+      paisStroke: '#FFFFFF'
+    },
+    effects: { foilType: 'chrome', foilOpacity: 50, emboss: true, tiltEnabled: true }
+  },
+  {
+    id: 'fire',
+    name: '🔥 Fuego (Fire)',
+    colors: {
+      ...INITIAL_CARD_DATA.colors,
+      fondo: '#7C1010',
+      inter: '#C62828',
+      dos: '#FF5722',
+      seis: '#FFCC02',
+      nombreBg: '#5C0000',
+      clubBg: '#7C1010',
+      fifaLogo: '#FFCC02',
+      paisStroke: '#FFCC02'
+    },
+    effects: { foilType: 'lava', foilOpacity: 75, emboss: true, tiltEnabled: true }
+  },
+  {
+    id: 'ice',
+    name: '❄️ Hielo (Ice)',
+    colors: {
+      ...INITIAL_CARD_DATA.colors,
+      fondo: '#E0F2FE',
+      inter: '#BAE6FD',
+      dos: '#38BDF8',
+      seis: '#0EA5E9',
+      nombreBg: '#CCEEFF',
+      clubBg: '#E0F2FE',
+      fifaLogo: '#0C4A6E',
+      paisStroke: '#0C4A6E'
+    },
+    effects: { foilType: 'aqua', foilOpacity: 45, emboss: true, tiltEnabled: true }
+  },
+  {
+    id: 'midnight',
+    name: '🌌 Medianoche',
+    colors: {
+      ...INITIAL_CARD_DATA.colors,
+      fondo: '#030712',
+      inter: '#0F172A',
+      dos: '#06B6D4',
+      seis: '#0E7490',
+      nombreBg: '#020617',
+      clubBg: '#030712',
+      fifaLogo: '#06B6D4',
+      paisStroke: '#06B6D4'
+    },
+    effects: { foilType: 'cosmos', foilOpacity: 80, emboss: true, tiltEnabled: true }
+  },
+  {
+    id: 'champions',
+    name: '👑 Champions',
+    colors: {
+      ...INITIAL_CARD_DATA.colors,
+      fondo: '#0A1628',
+      inter: '#1E3A5F',
+      dos: '#C9A84C',
+      seis: '#F5D78E',
+      nombreBg: '#070F1A',
+      clubBg: '#0A1628',
+      fifaLogo: '#C9A84C',
+      paisStroke: '#C9A84C'
+    },
+    effects: { foilType: 'gold', foilOpacity: 65, emboss: true, tiltEnabled: true }
   }
 ];
 
@@ -140,7 +253,14 @@ export default function App() {
   const svgRef = useRef<SVGSVGElement>(null);
   const cardContainerRef = useRef<HTMLDivElement>(null);
 
-  const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
+  // GPU-first: DOM refs for tilt wrappers and foil overlays
+  const cardWrapperMainRef = useRef<HTMLDivElement>(null);
+  const cardWrapperPreviewRef = useRef<HTMLDivElement>(null);
+  const foilMainRef = useRef<HTMLDivElement>(null);
+  const foilPreviewRef = useRef<HTMLDivElement>(null);
+  const tiltEnabledRef = useRef(data.effects.tiltEnabled);
+  const rafRef = useRef<number>(0);
+
   const [isHovering, setIsHovering] = useState(false);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -153,11 +273,53 @@ export default function App() {
     }
   }, [data]);
 
+  // Keep tiltEnabledRef in sync with data changes
+  React.useEffect(() => {
+    tiltEnabledRef.current = data.effects.tiltEnabled;
+    if (!data.effects.tiltEnabled) {
+      const reset = 'rotateX(0deg) rotateY(0deg)';
+      if (cardWrapperMainRef.current) cardWrapperMainRef.current.style.transform = reset;
+      if (cardWrapperPreviewRef.current) cardWrapperPreviewRef.current.style.transform = reset;
+    }
+  }, [data.effects.tiltEnabled]);
+
+  // rAF-throttled handler: zero React re-renders per mousemove
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
-    setMousePos({ x, y });
+    cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(() => {
+      const mx = `${x}%`;
+      const my = `${y}%`;
+      // Update CSS custom props on foil overlays directly
+      if (foilMainRef.current) {
+        foilMainRef.current.style.setProperty('--mx', mx);
+        foilMainRef.current.style.setProperty('--my', my);
+      }
+      if (foilPreviewRef.current) {
+        foilPreviewRef.current.style.setProperty('--mx', mx);
+        foilPreviewRef.current.style.setProperty('--my', my);
+      }
+      // Update 3D tilt transform directly on DOM
+      if (tiltEnabledRef.current) {
+        const tx = (50 - y) / 4;
+        const ty = -(50 - x) / 4;
+        const t = `rotateX(${tx}deg) rotateY(${ty}deg)`;
+        if (cardWrapperMainRef.current) cardWrapperMainRef.current.style.transform = t;
+        if (cardWrapperPreviewRef.current) cardWrapperPreviewRef.current.style.transform = t;
+      }
+    });
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovering(false);
+    cancelAnimationFrame(rafRef.current);
+    requestAnimationFrame(() => {
+      const reset = 'rotateX(0deg) rotateY(0deg)';
+      if (cardWrapperMainRef.current) cardWrapperMainRef.current.style.transform = reset;
+      if (cardWrapperPreviewRef.current) cardWrapperPreviewRef.current.style.transform = reset;
+    });
   };
 
   const applyTemplate = (templateId: string) => {
@@ -359,11 +521,14 @@ export default function App() {
                 value={data.effects.foilType}
                 onChange={(e) => handleEffectChange('foilType', e.target.value)}
               >
-                <option value="none">Sin brillo</option>
-                <option value="rainbow">Arcoíris (Rainbow)</option>
-                <option value="gold">Dorado (Gold)</option>
-                <option value="chrome">Plateado (Chrome)</option>
-                <option value="cosmos">Cosmos / Galaxia</option>
+                <option value="none">✦ Sin brillo</option>
+                <option value="rainbow">🌈 Arcoíris (Rainbow)</option>
+                <option value="gold">🥇 Dorado (Gold)</option>
+                <option value="chrome">🪞 Plateado (Chrome)</option>
+                <option value="cosmos">🌌 Cosmos / Galaxia</option>
+                <option value="prismatic">💎 Prismático (Crystal)</option>
+                <option value="lava">🔥 Lava (Fuego)</option>
+                <option value="aqua">🌊 Aqua (Agua)</option>
               </select>
             </div>
             {data.effects.foilType !== 'none' && (
@@ -497,55 +662,25 @@ export default function App() {
               style={{ perspective: '1500px' }}
             >
               <div 
-                className="relative max-w-full max-h-full aspect-[5020/6758] mx-auto shrink-0"
-                style={{
-                  height: '100%',
-                  transformStyle: 'preserve-3d',
-                  transform: data.effects.tiltEnabled && isHovering 
-                    ? `rotateX(${(50 - mousePos.y) / 4}deg) rotateY(${-(50 - mousePos.x) / 4}deg)` 
-                    : 'rotateX(0deg) rotateY(0deg)',
-                  transition: isHovering ? 'none' : 'transform 0.5s ease'
-                }}
+                ref={cardWrapperPreviewRef}
+                className="card-3d-wrapper relative max-w-full max-h-full aspect-[5020/6758] mx-auto shrink-0"
+                style={{ height: '100%' }}
               >
                 <div className="absolute inset-0 bg-cyan-500/10 blur-[100px] rounded-full pointer-events-none opacity-50 block m-auto" style={{ transform: 'translateZ(-50px)' }}></div>
                 <div 
-                  ref={cardContainerRef}
                   onMouseMove={handleMouseMove}
                   onMouseEnter={() => setIsHovering(true)}
-                  onMouseLeave={() => { setIsHovering(false); setMousePos({ x: 50, y: 50 }); }}
+                  onMouseLeave={handleMouseLeave}
                   className="relative group p-1 bg-white/5 backdrop-blur-sm shadow-2xl border border-white/10 overflow-hidden w-full h-full flex items-center justify-center rounded-[3%]"
-                  style={{
-                    boxShadow: data.effects.emboss ? 'inset 0 0 10px rgba(0,0,0,0.5), 0 20px 40px rgba(0,0,0,0.4)' : 'none',
-                  }}
+                  style={{ boxShadow: data.effects.emboss ? 'inset 0 0 10px rgba(0,0,0,0.5), 0 20px 40px rgba(0,0,0,0.4)' : 'none' }}
                 >
-                  <SVGCard 
-                    data={data} 
-                    svgRef={svgRef} 
-                  />
-                  {/* Foil Holographic Overlay */}
+                  <SVGCard data={data} svgRef={svgRef} />
                   {data.effects.foilType !== 'none' && (
-                    <div 
-                      className={`absolute inset-0 pointer-events-none rounded-[3%] mix-blend-color-dodge transition-opacity duration-300 ${isHovering ? 'opacity-100' : 'opacity-0'}`}
-                      style={{
-                        opacity: isHovering ? data.effects.foilOpacity / 100 : 0,
-                        backgroundImage: data.effects.foilType === 'rainbow' ? `
-                          radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 40%), 
-                          linear-gradient(115deg, transparent 20%, rgba(255,215,0,0.5) 30%, rgba(255,0,128,0.5) 50%, rgba(0,255,255,0.5) 70%, transparent 80%)
-                        ` : data.effects.foilType === 'gold' ? `
-                          radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%, rgba(255,215,0,0.9) 0%, rgba(184,134,11,0.5) 30%, transparent 70%),
-                          linear-gradient(115deg, transparent 20%, rgba(255,248,220,0.4) 40%, rgba(218,165,32,0.6) 60%, transparent 80%)
-                        ` : data.effects.foilType === 'chrome' ? `
-                          radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%, rgba(255,255,255,0.9) 0%, rgba(200,200,200,0.5) 30%, transparent 70%),
-                          linear-gradient(115deg, transparent 20%, rgba(255,255,255,0.6) 40%, rgba(150,150,150,0.4) 60%, transparent 80%)
-                        ` : data.effects.foilType === 'cosmos' ? `
-                          radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%, rgba(255,255,255,0.9) 0%, rgba(255,0,255,0.3) 20%, rgba(0,255,255,0.3) 40%, transparent 70%),
-                          url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDIiIGhlaWdodD0iNDAyIj48ZyBmaWxsPSIjRkZGIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iMSIvPjxjaXJjbGUgY3g9IjIwMCIgY3k9IjIwMCIgcj0iMSIvPjxjaXJjbGUgY3g9IjMwMCIgY3k9IjMwMCIgcj0iMSIvPjwvZz48L3N2Zz4=')
-                        ` : 'none',
-                        backgroundPosition: `${mousePos.x}% ${mousePos.y}%`,
-                        backgroundSize: data.effects.foilType === 'cosmos' ? '100% 100%, 200px 200px' : '200% 200%',
-                        mixBlendMode: data.effects.foilType === 'cosmos' ? 'screen' : 'color-dodge',
-                      }}
-                    ></div>
+                    <div
+                      ref={foilPreviewRef}
+                      className={`holofoil holofoil-${data.effects.foilType}`}
+                      style={{ opacity: isHovering ? data.effects.foilOpacity / 100 : 0 }}
+                    />
                   )}
                 </div>
               </div>
@@ -617,63 +752,37 @@ export default function App() {
 
         {/* Main Canvas Area */}
         <main className="flex-1 relative flex items-center justify-center transition-all duration-[400ms] ease-[cubic-bezier(0.25,1,0.5,1)] bg-[radial-gradient(circle_at_center,rgba(8,145,178,0.05)_0%,rgba(0,0,0,1)_100%)] p-4 md:p-8" style={{ perspective: '1500px' }}>
-          <div 
-            className="relative h-full max-h-[85vh] max-w-full aspect-[5020/6758] transition-all duration-[400ms] ease-[cubic-bezier(0.25,1,0.5,1)] active:scale-[0.98] mx-auto flex items-center justify-center shrink-0"
-            style={{
-              transformStyle: 'preserve-3d',
-              transform: data.effects.tiltEnabled && isHovering 
-                ? `rotateX(${(50 - mousePos.y) / 4}deg) rotateY(${-(50 - mousePos.x) / 4}deg)` 
-                : 'rotateX(0deg) rotateY(0deg)',
-              transition: isHovering ? 'none' : 'transform 0.5s ease'
-            }}
-          >
-            {/* Decorative glows focused on card */}
-            <div className="absolute inset-0 bg-cyan-500/10 blur-[100px] rounded-full pointer-events-none opacity-50 block m-auto" style={{ transform: 'translateZ(-50px)' }}></div>
-            
             <div 
-              ref={cardContainerRef}
-              onMouseMove={handleMouseMove}
-              onMouseEnter={() => setIsHovering(true)}
-              onMouseLeave={() => { setIsHovering(false); setMousePos({ x: 50, y: 50 }); }}
-              className="relative group p-1 bg-white/5 backdrop-blur-sm shadow-2xl border border-white/10 overflow-hidden w-full h-full flex items-center justify-center rounded-[3%]"
-              style={{
-                boxShadow: data.effects.emboss ? 'inset 0 0 10px rgba(0,0,0,0.5), 0 20px 40px rgba(0,0,0,0.4)' : 'none',
-              }}
+              ref={cardWrapperMainRef}
+              className="card-3d-wrapper relative h-full max-h-[85vh] max-w-full aspect-[5020/6758] active:scale-[0.98] mx-auto flex items-center justify-center shrink-0"
             >
-              <SVGCard 
-                data={data} 
-                svgRef={svgRef} 
-                selectedElement={selectedElement}
-                onSelect={setSelectedElement}
-              />
+              {/* Decorative glow */}
+              <div className="absolute inset-0 bg-cyan-500/10 blur-[100px] rounded-full pointer-events-none opacity-50 block m-auto" style={{ transform: 'translateZ(-50px)' }}></div>
               
-              {/* Foil Holographic Overlay */}
-              {data.effects.foilType !== 'none' && (
-                <div 
-                  className={`absolute inset-0 pointer-events-none rounded-[3%] mix-blend-color-dodge transition-opacity duration-300 ${isHovering ? 'opacity-100' : 'opacity-0'}`}
-                  style={{
-                    opacity: isHovering ? data.effects.foilOpacity / 100 : 0,
-                    backgroundImage: data.effects.foilType === 'rainbow' ? `
-                      radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 40%), 
-                      linear-gradient(115deg, transparent 20%, rgba(255,215,0,0.5) 30%, rgba(255,0,128,0.5) 50%, rgba(0,255,255,0.5) 70%, transparent 80%)
-                    ` : data.effects.foilType === 'gold' ? `
-                      radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%, rgba(255,215,0,0.9) 0%, rgba(184,134,11,0.5) 30%, transparent 70%),
-                      linear-gradient(115deg, transparent 20%, rgba(255,248,220,0.4) 40%, rgba(218,165,32,0.6) 60%, transparent 80%)
-                    ` : data.effects.foilType === 'chrome' ? `
-                      radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%, rgba(255,255,255,0.9) 0%, rgba(200,200,200,0.5) 30%, transparent 70%),
-                      linear-gradient(115deg, transparent 20%, rgba(255,255,255,0.6) 40%, rgba(150,150,150,0.4) 60%, transparent 80%)
-                    ` : data.effects.foilType === 'cosmos' ? `
-                      radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%, rgba(255,255,255,0.9) 0%, rgba(255,0,255,0.3) 20%, rgba(0,255,255,0.3) 40%, transparent 70%),
-                      url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDIiIGhlaWdodD0iNDAyIj48ZyBmaWxsPSIjRkZGIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iMSIvPjxjaXJjbGUgY3g9IjIwMCIgY3k9IjIwMCIgcj0iMSIvPjxjaXJjbGUgY3g9IjMwMCIgY3k9IjMwMCIgcj0iMSIvPjwvZz48L3N2Zz4=')
-                    ` : 'none',
-                    backgroundPosition: `${mousePos.x}% ${mousePos.y}%`,
-                    backgroundSize: data.effects.foilType === 'cosmos' ? '100% 100%, 200px 200px' : '200% 200%',
-                    mixBlendMode: data.effects.foilType === 'cosmos' ? 'screen' : 'color-dodge',
-                  }}
-                ></div>
-              )}
+              <div 
+                ref={cardContainerRef}
+                onMouseMove={handleMouseMove}
+                onMouseEnter={() => setIsHovering(true)}
+                onMouseLeave={handleMouseLeave}
+                className="relative group p-1 bg-white/5 backdrop-blur-sm shadow-2xl border border-white/10 overflow-hidden w-full h-full flex items-center justify-center rounded-[3%]"
+                style={{ boxShadow: data.effects.emboss ? 'inset 0 0 10px rgba(0,0,0,0.5), 0 20px 40px rgba(0,0,0,0.4)' : 'none' }}
+              >
+                <SVGCard 
+                  data={data} 
+                  svgRef={svgRef} 
+                  selectedElement={selectedElement}
+                  onSelect={setSelectedElement}
+                />
+                {/* Foil Holographic Overlay — CSS class-driven, updated via setProperty */}
+                {data.effects.foilType !== 'none' && (
+                  <div
+                    ref={foilMainRef}
+                    className={`holofoil holofoil-${data.effects.foilType}`}
+                    style={{ opacity: isHovering ? data.effects.foilOpacity / 100 : 0 }}
+                  />
+                )}
+              </div>
             </div>
-          </div>
           
           <button
              className="absolute inset-0 z-0 w-full h-full cursor-default focus:outline-none"
