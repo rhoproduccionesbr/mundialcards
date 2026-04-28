@@ -5,6 +5,9 @@ import { toPng } from 'html-to-image';
 import { CardData, INITIAL_CARD_DATA } from './types';
 import SVGCard from './components/SVGCard';
 import Particles from './components/Particles';
+import ColorPickerField from './components/ColorPickerField';
+import { generateNoiseTexture } from './utils/noiseTexture';
+import './holo-lamina.css';
 
 const cardTemplates = [
   {
@@ -27,7 +30,7 @@ const cardTemplates = [
       fifaLogo: '#FFFFFF',
       paisStroke: '#FFFFFF'
     },
-    effects: { foilType: 'gold', foilOpacity: 65, emboss: true, tiltEnabled: true }
+    effects: { foilType: 'gold', foilOpacity: 65, emboss: false, tiltEnabled: true }
   },
   {
     id: 'totw',
@@ -43,7 +46,7 @@ const cardTemplates = [
       fifaLogo: '#FFFFFF',
       paisStroke: '#000000'
     },
-    effects: { foilType: 'chrome', foilOpacity: 55, emboss: true, tiltEnabled: true }
+    effects: { foilType: 'chrome', foilOpacity: 55, emboss: false, tiltEnabled: true }
   },
   {
     id: 'icon',
@@ -59,7 +62,7 @@ const cardTemplates = [
       fifaLogo: '#000000',
       paisStroke: '#000000'
     },
-    effects: { foilType: 'rainbow', foilOpacity: 35, emboss: true, tiltEnabled: true }
+    effects: { foilType: 'rainbow', foilOpacity: 35, emboss: false, tiltEnabled: true }
   },
   {
     id: 'heroes',
@@ -75,7 +78,7 @@ const cardTemplates = [
       fifaLogo: '#C084FC',
       paisStroke: '#C084FC'
     },
-    effects: { foilType: 'prismatic', foilOpacity: 70, emboss: true, tiltEnabled: true }
+    effects: { foilType: 'prismatic', foilOpacity: 70, emboss: false, tiltEnabled: true }
   },
   {
     id: 'fut_future',
@@ -91,7 +94,7 @@ const cardTemplates = [
       fifaLogo: '#00EEFF',
       paisStroke: '#00EEFF'
     },
-    effects: { foilType: 'aqua', foilOpacity: 65, emboss: true, tiltEnabled: true }
+    effects: { foilType: 'aqua', foilOpacity: 65, emboss: false, tiltEnabled: true }
   },
   {
     id: 'tott',
@@ -107,7 +110,7 @@ const cardTemplates = [
       fifaLogo: '#A8FF78',
       paisStroke: '#A8FF78'
     },
-    effects: { foilType: 'rainbow', foilOpacity: 55, emboss: true, tiltEnabled: true }
+    effects: { foilType: 'rainbow', foilOpacity: 55, emboss: false, tiltEnabled: true }
   },
   {
     id: 'silver',
@@ -123,7 +126,7 @@ const cardTemplates = [
       fifaLogo: '#FFFFFF',
       paisStroke: '#FFFFFF'
     },
-    effects: { foilType: 'chrome', foilOpacity: 50, emboss: true, tiltEnabled: true }
+    effects: { foilType: 'chrome', foilOpacity: 50, emboss: false, tiltEnabled: true }
   },
   {
     id: 'fire',
@@ -139,7 +142,7 @@ const cardTemplates = [
       fifaLogo: '#FFCC02',
       paisStroke: '#FFCC02'
     },
-    effects: { foilType: 'lava', foilOpacity: 75, emboss: true, tiltEnabled: true }
+    effects: { foilType: 'lava', foilOpacity: 75, emboss: false, tiltEnabled: true }
   },
   {
     id: 'ice',
@@ -155,7 +158,7 @@ const cardTemplates = [
       fifaLogo: '#0C4A6E',
       paisStroke: '#0C4A6E'
     },
-    effects: { foilType: 'aqua', foilOpacity: 45, emboss: true, tiltEnabled: true }
+    effects: { foilType: 'aqua', foilOpacity: 45, emboss: false, tiltEnabled: true }
   },
   {
     id: 'midnight',
@@ -171,7 +174,7 @@ const cardTemplates = [
       fifaLogo: '#06B6D4',
       paisStroke: '#06B6D4'
     },
-    effects: { foilType: 'cosmos', foilOpacity: 80, emboss: true, tiltEnabled: true }
+    effects: { foilType: 'cosmos', foilOpacity: 80, emboss: false, tiltEnabled: true }
   },
   {
     id: 'champions',
@@ -187,7 +190,7 @@ const cardTemplates = [
       fifaLogo: '#C9A84C',
       paisStroke: '#C9A84C'
     },
-    effects: { foilType: 'gold', foilOpacity: 65, emboss: true, tiltEnabled: true }
+    effects: { foilType: 'gold', foilOpacity: 65, emboss: false, tiltEnabled: true }
   }
 ];
 
@@ -232,7 +235,18 @@ export default function App() {
   const [gallery, setGallery] = useState<CardData[]>(() => {
     try {
       const saved = localStorage.getItem('paninicardmaker_gallery');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return parsed.map((p: any) => ({
+          ...INITIAL_CARD_DATA,
+          ...p,
+          colors: { ...INITIAL_CARD_DATA.colors, ...(p.colors || {}) },
+          texts: { ...INITIAL_CARD_DATA.texts, ...(p.texts || {}) },
+          images: { ...INITIAL_CARD_DATA.images, ...(p.images || {}) },
+          layout: { ...INITIAL_CARD_DATA.layout, ...(p.layout || {}) },
+          effects: { ...INITIAL_CARD_DATA.effects, ...(p.effects || {}) },
+        }));
+      }
     } catch (e) {
       console.warn('LocalStorage error', e);
     }
@@ -256,6 +270,7 @@ export default function App() {
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const cardContainerRef = useRef<HTMLDivElement>(null);
+  const [enable3D, setEnable3D] = useState(true);
 
   // GPU-first: DOM refs for tilt wrappers and foil overlays
   const cardWrapperMainRef = useRef<HTMLDivElement>(null);
@@ -274,6 +289,8 @@ export default function App() {
   const isDraggingRef = useRef(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
   const lastSpinRef = useRef({ x: 0, y: 0 });
+  
+  const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
 
   // Auto-update the active card in the gallery list
   React.useEffect(() => {
@@ -310,6 +327,181 @@ export default function App() {
     });
   };
 
+  // ── Smooth lerp system for flicker-free effects ──
+  const lerpTargetRef = useRef({ x: 50, y: 50 });
+  const lerpCurrentRef = useRef({ x: 50, y: 50 });
+  const lerpActiveRef = useRef(false);
+  const gyroActiveRef = useRef(false);
+
+  const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+
+  // Smooth animation loop — interpolates values instead of jumping
+  const startLerpLoop = () => {
+    if (lerpActiveRef.current) return;
+    lerpActiveRef.current = true;
+
+    const loop = () => {
+      if (!lerpActiveRef.current) return;
+
+      const speed = 0.08; // Lower = smoother
+      const cur = lerpCurrentRef.current;
+      const tgt = lerpTargetRef.current;
+
+      cur.x = lerp(cur.x, tgt.x, speed);
+      cur.y = lerp(cur.y, tgt.y, speed);
+
+      applyEffectsRaw(cur.x, cur.y);
+      rafRef.current = requestAnimationFrame(loop);
+    };
+    rafRef.current = requestAnimationFrame(loop);
+  };
+
+  const stopLerpLoop = () => {
+    lerpActiveRef.current = false;
+    cancelAnimationFrame(rafRef.current);
+  };
+
+  // ── Raw effect application (no scheduling, called from lerp loop) ──
+  const applyEffectsRaw = (x: number, y: number) => {
+    try {
+      const mx = `${x}%`;
+      const my = `${y}%`;
+      const setVars = (el: HTMLElement) => {
+        el.style.setProperty('--mx', mx);
+        el.style.setProperty('--my', my);
+        el.style.setProperty('--pointer-x', mx);
+        el.style.setProperty('--pointer-y', my);
+        el.style.setProperty('--holo-opacity', '1');
+        const fromCenter = Math.min(Math.sqrt((y-50)**2 + (x-50)**2) / 50, 1);
+        el.style.setProperty('--pointer-from-center', `${fromCenter}`);
+        el.style.setProperty('--pointer-from-top', `${y / 100}`);
+        el.style.setProperty('--pointer-from-left', `${x / 100}`);
+        el.style.setProperty('--grain-opacity', `${(data.effects.grainOpacity ?? 15) / 100}`);
+      };
+      if (cardContainerRef.current) setVars(cardContainerRef.current);
+      if (foilPreviewRef.current) setVars(foilPreviewRef.current);
+
+      // Update 3D Light Source for Player Depth Map
+      if (isFinite(x) && isFinite(y)) {
+        const lights = document.querySelectorAll('#player-light');
+        const lx = Math.max(0, Math.min(5020, x * 50.20));
+        const ly = Math.max(0, Math.min(6758, y * 67.58));
+        lights.forEach(light => {
+          light.setAttribute('x', String(lx));
+          light.setAttribute('y', String(ly));
+        });
+      }
+
+      if (tiltEnabledRef.current && !isDraggingRef.current) {
+        const tx = (50 - y) / 4;
+        const ty = -(50 - x) / 4;
+        const finalX = isFinite(spinRef.current.x + tx) ? spinRef.current.x + tx : 0;
+        const finalY = isFinite(spinRef.current.y + ty) ? spinRef.current.y + ty : 0;
+        
+        const t = `translate3d(0,0,0) rotateX(${finalX}deg) rotateY(${finalY}deg)`;
+        if (cardWrapperMainRef.current) cardWrapperMainRef.current.style.transform = t;
+        if (cardWrapperPreviewRef.current) cardWrapperPreviewRef.current.style.transform = t;
+      }
+    } catch (err) {
+      console.error("Renderer Error:", err);
+    }
+  };
+
+  // ── Direct apply for drag (bypasses lerp for responsiveness) ──
+  const applyEffects = (x: number, y: number, isDrag = false) => {
+    if (isDrag) {
+      // During drag, apply directly for responsiveness
+      cancelAnimationFrame(rafRef.current);
+      requestAnimationFrame(() => {
+        applyEffectsRaw(x, y);
+        if (tiltEnabledRef.current || isDrag) {
+          const finalX = spinRef.current.x;
+          const finalY = spinRef.current.y;
+          const t = `rotateX(${finalX}deg) rotateY(${finalY}deg)`;
+          if (cardWrapperMainRef.current) cardWrapperMainRef.current.style.transform = t;
+          if (cardWrapperPreviewRef.current) cardWrapperPreviewRef.current.style.transform = t;
+        }
+      });
+    } else {
+      // Normal hover/gyro: use lerp for smoothness
+      lerpTargetRef.current = { x, y };
+      startLerpLoop();
+    }
+  };
+
+  const resetEffects = () => {
+    stopLerpLoop();
+    lerpTargetRef.current = { x: 50, y: 50 };
+    lerpCurrentRef.current = { x: 50, y: 50 };
+    requestAnimationFrame(() => {
+      const t = `rotateX(${spinRef.current.x}deg) rotateY(${spinRef.current.y}deg)`;
+      if (cardWrapperMainRef.current) cardWrapperMainRef.current.style.transform = t;
+      if (cardWrapperPreviewRef.current) cardWrapperPreviewRef.current.style.transform = t;
+    });
+  };
+
+  // ── Gyroscope support (DeviceOrientation) ──
+  React.useEffect(() => {
+    if (!isMobile) return;
+
+    let permissionGranted = false;
+
+    const handleOrientation = (e: DeviceOrientationEvent) => {
+      if (!tiltEnabledRef.current && data.effects.foilType === 'none') return;
+
+      const beta = e.beta ?? 0;   // -180 to 180 (front-back tilt)
+      const gamma = e.gamma ?? 0; // -90 to 90  (left-right tilt)
+
+      // Map gyro values to 0-100 range (centered at 50)
+      // beta: 0-90 range mapped to 0-100 (phone held at ~45° is center)
+      const y = Math.max(0, Math.min(100, ((beta - 20) / 60) * 100));
+      // gamma: -45 to 45 mapped to 0-100
+      const x = Math.max(0, Math.min(100, ((gamma + 45) / 90) * 100));
+
+      lerpTargetRef.current = { x, y };
+      if (!gyroActiveRef.current) {
+        gyroActiveRef.current = true;
+        startLerpLoop();
+      }
+    };
+
+    const requestPermission = async () => {
+      // iOS 13+ requires permission
+      if (typeof window !== 'undefined' && window.DeviceOrientationEvent && typeof (window.DeviceOrientationEvent as any).requestPermission === 'function') {
+        try {
+          const perm = await (window.DeviceOrientationEvent as any).requestPermission();
+          if (perm === 'granted') {
+            permissionGranted = true;
+            window.addEventListener('deviceorientation', handleOrientation, { passive: true });
+          }
+        } catch (err) {
+          console.warn('Gyro permission denied:', err);
+        }
+      } else {
+        // Android / non-iOS
+        permissionGranted = true;
+        window.addEventListener('deviceorientation', handleOrientation, { passive: true });
+      }
+    };
+
+    // Auto-request on Android, wait for touch on iOS
+    if (typeof window !== 'undefined' && window.DeviceOrientationEvent && typeof (window.DeviceOrientationEvent as any).requestPermission === 'function') {
+      const touchHandler = () => {
+        requestPermission();
+        document.removeEventListener('touchstart', touchHandler);
+      };
+      document.addEventListener('touchstart', touchHandler, { once: true });
+    } else {
+      requestPermission();
+    }
+
+    return () => {
+      window.removeEventListener('deviceorientation', handleOrientation);
+      gyroActiveRef.current = false;
+      stopLerpLoop();
+    };
+  }, [data.effects.foilType]);
+
   // Keep tiltEnabledRef in sync with data changes
   React.useEffect(() => {
     tiltEnabledRef.current = data.effects.tiltEnabled;
@@ -320,56 +512,12 @@ export default function App() {
     }
   }, [data.effects.tiltEnabled]);
 
-  // ── Shared inner logic: apply foil + tilt from normalized x/y (0-100) ──
-  const applyEffects = (x: number, y: number, isDrag = false) => {
-    cancelAnimationFrame(rafRef.current);
-    rafRef.current = requestAnimationFrame(() => {
-      const mx = `${x}%`;
-      const my = `${y}%`;
-      if (cardContainerRef.current) {
-        cardContainerRef.current.style.setProperty('--mx', mx);
-        cardContainerRef.current.style.setProperty('--my', my);
-      }
-      if (foilPreviewRef.current) {
-        foilPreviewRef.current.style.setProperty('--mx', mx);
-        foilPreviewRef.current.style.setProperty('--my', my);
-      }
-      // Update 3D Light Source for Player Depth Map
-      const lights = document.querySelectorAll('#player-light');
-      lights.forEach(light => {
-        light.setAttribute('x', String(x * 50.20)); // Map 0-100 to 0-5020 (SVG width)
-        light.setAttribute('y', String(y * 67.58)); // Map 0-100 to 0-6758 (SVG height)
-      });
-
-      if (tiltEnabledRef.current || isDrag) {
-        let tx = 0, ty = 0;
-        if (!isDraggingRef.current && tiltEnabledRef.current) {
-           tx = (50 - y) / 4;
-           ty = -(50 - x) / 4;
-        }
-        const finalX = spinRef.current.x + tx;
-        const finalY = spinRef.current.y + ty;
-        const t = `rotateX(${finalX}deg) rotateY(${finalY}deg)`;
-        if (cardWrapperMainRef.current) cardWrapperMainRef.current.style.transform = t;
-        if (cardWrapperPreviewRef.current) cardWrapperPreviewRef.current.style.transform = t;
-      }
-    });
-  };
-
-  const resetEffects = () => {
-    cancelAnimationFrame(rafRef.current);
-    requestAnimationFrame(() => {
-      const t = `rotateX(${spinRef.current.x}deg) rotateY(${spinRef.current.y}deg)`;
-      if (cardWrapperMainRef.current) cardWrapperMainRef.current.style.transform = t;
-      if (cardWrapperPreviewRef.current) cardWrapperPreviewRef.current.style.transform = t;
-    });
-  };
-
   // ── Drag & Spin handlers ──
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     e.currentTarget.setPointerCapture(e.pointerId);
     isDraggingRef.current = true;
+    stopLerpLoop(); // Pause lerp during drag
     dragStartRef.current = { x: e.clientX, y: e.clientY };
     lastSpinRef.current = { x: spinRef.current.x, y: spinRef.current.y };
     setIsHovering(true);
@@ -423,7 +571,13 @@ export default function App() {
   const handlePointerLeave = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDraggingRef.current) {
       setIsHovering(false);
-      resetEffects();
+      if (!gyroActiveRef.current) {
+        // Only hide holo if gyro is not active (desktop)
+        resetEffects();
+        const hideHolo = (el: HTMLElement | null) => el?.style.setProperty('--holo-opacity', '0');
+        hideHolo(cardContainerRef.current);
+        hideHolo(foilPreviewRef.current);
+      }
     }
   };
 
@@ -643,8 +797,8 @@ export default function App() {
             </select>
           </div>
           <div className="grid grid-cols-2 gap-3 mb-4">
-            <ColorField label="FONDO" value={data.colors.fondo} onChange={(v) => handleColorChange('fondo', v)} id="fondo" />
-            <ColorField label="INTER" value={data.colors.inter} onChange={(v) => handleColorChange('inter', v)} id="inter" />
+            <ColorPickerField label="FONDO" value={data.colors.fondo} onChange={(v) => handleColorChange('fondo', v)} id="fondo" />
+            <ColorPickerField label="INTER" value={data.colors.inter} onChange={(v) => handleColorChange('inter', v)} id="inter" />
           </div>
           <div className="flex items-center justify-between mb-4">
             <label className="text-[10px] uppercase font-bold tracking-wider text-neutral-400">Marca de Agua (FanasEdition)</label>
@@ -658,8 +812,21 @@ export default function App() {
           <SliderField label="Margin / Padding" value={data.layout.padding} min={0} max={1000} step={10} onChange={handlePaddingChange} />
         </Section>
 
-        <Section title="Efectos & Holograma" icon={Sparkles} defaultOpen={selectedElement === 'effects'}>
+        <Section title="Efectos & Animaciones" icon={Sparkles} defaultOpen={selectedElement === 'effects'}>
           <div className="space-y-4">
+            {/* ── CAPA 0: Marco ── */}
+            <div className="p-3 bg-neutral-900/50 rounded border border-neutral-800">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-[10px] uppercase font-bold tracking-wider text-amber-400">🖼️ Marco / Borde</label>
+                <input type="checkbox" checked={data.effects.frameEnabled ?? false} onChange={(e) => handleEffectChange('frameEnabled', e.target.checked)} className="accent-amber-500" />
+              </div>
+              {data.effects.frameEnabled && (
+                <div className="grid grid-cols-2 gap-3 mt-2">
+                  <ColorPickerField label="Color del Marco" value={data.effects.frameColor ?? '#D4AF37'} onChange={(v) => handleEffectChange('frameColor', v)} id="frameColor" />
+                  <SliderField label="Grosor (px)" value={data.effects.frameWidth ?? 8} min={2} max={30} step={1} onChange={(v) => handleEffectChange('frameWidth', v)} />
+                </div>
+              )}
+            </div>
             <div className="flex items-center justify-between">
               <label className="text-[10px] uppercase font-bold tracking-wider text-neutral-400">Activar Relieve (Emboss)</label>
               <input type="checkbox" checked={data.effects.emboss} onChange={(e) => handleEffectChange('emboss', e.target.checked)} className="accent-cyan-500" />
@@ -668,39 +835,19 @@ export default function App() {
               <label className="text-[10px] uppercase font-bold tracking-wider text-neutral-400">Movimiento 3D (Tilt)</label>
               <input type="checkbox" checked={data.effects.tiltEnabled} onChange={(e) => handleEffectChange('tiltEnabled', e.target.checked)} className="accent-cyan-500" />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 block mb-1">Holograma</label>
-                <select 
-                  className="w-full bg-neutral-950 border border-neutral-800 rounded px-2 py-2 text-xs text-white outline-none focus:border-cyan-500 transition-colors appearance-none"
-                  value={data.effects.foilType}
-                  onChange={(e) => handleEffectChange('foilType', e.target.value)}
-                >
-                  <option value="none">✦ Sin brillo</option>
-                  <option value="rainbow">🌈 Arcoíris (Rainbow)</option>
-                  <option value="gold">🥇 Dorado (Gold)</option>
-                  <option value="chrome">🪞 Plateado (Chrome)</option>
-                  <option value="cosmos">🌌 Cosmos / Galaxia</option>
-                  <option value="prismatic">💎 Prismático (Crystal)</option>
-                  <option value="lava">🔥 Lava (Fuego)</option>
-                  <option value="aqua">🌊 Aqua (Agua)</option>
-                  <option value="shattered">🧊 Cristal Roto (Ice)</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 block mb-1">Partículas</label>
-                <select 
-                  className="w-full bg-neutral-950 border border-neutral-800 rounded px-2 py-2 text-xs text-white outline-none focus:border-cyan-500 transition-colors appearance-none"
-                  value={data.effects.particles || 'none'}
-                  onChange={(e) => handleEffectChange('particles', e.target.value)}
-                >
-                  <option value="none">Ninguna</option>
-                  <option value="snow">❄️ Nieve (Snow)</option>
-                  <option value="sparks">✨ Chispas (Sparks)</option>
-                  <option value="confetti">🎉 Confeti (Confetti)</option>
-                  <option value="glimmers">🌟 Destellos (Glimmers)</option>
-                </select>
-              </div>
+            <div>
+              <label className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 block mb-1">Partículas</label>
+              <select 
+                className="w-full bg-neutral-950 border border-neutral-800 rounded px-2 py-2 text-xs text-white outline-none focus:border-cyan-500 transition-colors appearance-none"
+                value={data.effects.particles || 'none'}
+                onChange={(e) => handleEffectChange('particles', e.target.value)}
+              >
+                <option value="none">Ninguna</option>
+                <option value="snow">❄️ Nieve (Snow)</option>
+                <option value="sparks">✨ Chispas (Sparks)</option>
+                <option value="confetti">🎉 Confeti (Confetti)</option>
+                <option value="glimmers">🌟 Destellos (Glimmers)</option>
+              </select>
             </div>
             
             {data.effects.particles && data.effects.particles !== 'none' && (
@@ -715,49 +862,39 @@ export default function App() {
               <input type="checkbox" checked={data.effects.playerRelief ?? false} onChange={(e) => handleEffectChange('playerRelief', e.target.checked)} className="accent-cyan-500" />
             </div>
 
-            {data.effects.foilType !== 'none' && (
-              <>
-                <SliderField label="Intensidad del Brillo (%)" value={data.effects.foilOpacity} min={0} max={100} step={5} onChange={(v) => handleEffectChange('foilOpacity', v)} />
-                
-                <div className="mt-4 p-3 bg-neutral-900/50 rounded border border-neutral-800">
-                  <label className="text-[10px] uppercase font-bold tracking-wider text-cyan-500 mb-2 block">Zonas Holográficas</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <label className="flex items-center gap-2 text-[10px] text-neutral-300">
-                      <input type="checkbox" checked={data.effects.foilMasks?.background ?? true} onChange={(e) => setData(p => ({...p, effects: {...p.effects, foilMasks: {...p.effects.foilMasks, background: e.target.checked}}}))} className="accent-cyan-500" />
-                      Fondo Completo
-                    </label>
-                    <label className="flex items-center gap-2 text-[10px] text-neutral-300">
-                      <input type="checkbox" checked={data.effects.foilMasks?.player ?? false} onChange={(e) => setData(p => ({...p, effects: {...p.effects, foilMasks: {...p.effects.foilMasks, player: e.target.checked}}}))} className="accent-cyan-500" disabled={data.effects.foilMasks?.background} />
-                      Silueta Jugador
-                    </label>
-                    <label className="flex items-center gap-2 text-[10px] text-neutral-300">
-                      <input type="checkbox" checked={data.effects.foilMasks?.shapes ?? false} onChange={(e) => setData(p => ({...p, effects: {...p.effects, foilMasks: {...p.effects.foilMasks, shapes: e.target.checked}}}))} className="accent-cyan-500" disabled={data.effects.foilMasks?.background} />
-                      Vectores (Fondo)
-                    </label>
-                    <label className="flex items-center gap-2 text-[10px] text-neutral-300">
-                      <input type="checkbox" checked={data.effects.foilMasks?.containers ?? false} onChange={(e) => setData(p => ({...p, effects: {...p.effects, foilMasks: {...p.effects.foilMasks, containers: e.target.checked}}}))} className="accent-cyan-500" disabled={data.effects.foilMasks?.background} />
-                      Cajas de Texto
-                    </label>
-                    <label className="flex items-center gap-2 text-[10px] text-neutral-300">
-                      <input type="checkbox" checked={data.effects.foilMasks?.texts ?? false} onChange={(e) => setData(p => ({...p, effects: {...p.effects, foilMasks: {...p.effects.foilMasks, texts: e.target.checked}}}))} className="accent-cyan-500" disabled={data.effects.foilMasks?.background} />
-                      Letras y Números
-                    </label>
-                    <label className="flex items-center gap-2 text-[10px] text-neutral-300">
-                      <input type="checkbox" checked={data.effects.foilMasks?.logos ?? false} onChange={(e) => setData(p => ({...p, effects: {...p.effects, foilMasks: {...p.effects.foilMasks, logos: e.target.checked}}}))} className="accent-cyan-500" disabled={data.effects.foilMasks?.background} />
-                      Logos y Bandera
-                    </label>
-                  </div>
+            {/* ── CAPA 10: Lámina Holográfica ── */}
+            <div className="p-3 bg-neutral-900/50 rounded border border-neutral-800 mt-2">
+              <label className="text-[10px] uppercase font-bold tracking-wider text-violet-400 block mb-2">✨ Lámina Holográfica</label>
+              <select 
+                className="w-full bg-neutral-950 border border-neutral-800 rounded px-2 py-2 text-xs text-white outline-none focus:border-violet-500 transition-colors appearance-none mb-2"
+                value={data.effects.foilType}
+                onChange={(e) => handleEffectChange('foilType', e.target.value)}
+              >
+                <option value="none">✦ Sin lámina</option>
+                <option value="rainbow">🌈 Arcoíris (Rainbow)</option>
+                <option value="gold">🥇 Dorado (Gold)</option>
+                <option value="chrome">🪞 Chrome (Espejo)</option>
+                <option value="cosmos">🌌 Cosmos (Galaxy)</option>
+                <option value="prismatic">💎 Prismático (Crystal)</option>
+                <option value="lava">🔥 Lava (Fuego)</option>
+                <option value="aqua">🌊 Aqua (Agua)</option>
+                <option value="shattered">🧊 Cristal Roto (Ice)</option>
+              </select>
+              {data.effects.foilType !== 'none' && (
+                <div className="grid grid-cols-2 gap-3">
+                  <SliderField label="Opacidad (%)" value={data.effects.foilOpacity} min={10} max={100} step={5} onChange={(v) => handleEffectChange('foilOpacity', v)} />
+                  <SliderField label="Rugosidad (%)" value={data.effects.grainOpacity ?? 15} min={0} max={60} step={5} onChange={(v) => handleEffectChange('grainOpacity', v)} />
                 </div>
-              </>
-            )}
+              )}
+            </div>
           </div>
         </Section>
 
         <Section title="Graphic Shapes" icon={Palette} defaultOpen={selectedElement === 'shapes'}>
           <div className="grid grid-cols-3 gap-3">
-            <ColorField label="DOS" value={data.colors.dos} onChange={(v) => handleColorChange('dos', v)} id="dos" />
-            <ColorField label="SEIS" value={data.colors.seis} onChange={(v) => handleColorChange('seis', v)} id="seis" />
-            <ColorField label="INTER" value={data.colors.inter} onChange={(v) => handleColorChange('inter', v)} id="inter" />
+            <ColorPickerField label="DOS" value={data.colors.dos} onChange={(v) => handleColorChange('dos', v)} id="dos" />
+            <ColorPickerField label="SEIS" value={data.colors.seis} onChange={(v) => handleColorChange('seis', v)} id="seis" />
+            <ColorPickerField label="INTER" value={data.colors.inter} onChange={(v) => handleColorChange('inter', v)} id="inter" />
           </div>
         </Section>
 
@@ -782,10 +919,10 @@ export default function App() {
             <SliderField label="Rotation" value={data.images.backCardTransform.rotate} min={-180} max={180} step={1} onChange={(v) => handleTransformChange('backCardTransform', 'rotate', v)} />
             <SliderField label="Pos X" value={data.images.backCardTransform.x} min={-2000} max={2000} step={10} onChange={(v) => handleTransformChange('backCardTransform', 'x', v)} />
             <SliderField label="Pos Y" value={data.images.backCardTransform.y} min={-2000} max={2000} step={10} onChange={(v) => handleTransformChange('backCardTransform', 'y', v)} />
-          </div>
-        </Section>
+            </div>
+          </Section>
 
-        <Section title="Flag / Region" icon={Globe} defaultOpen={selectedElement === 'flag'}>
+          <Section title="Exportar & Ajustes" icon={Download} defaultOpen={selectedElement === 'flag'}>
           <div className="mb-4 text-xs">
             <MediaField label="Flag Image" hasImage={!!data.images.flag} onUpload={(e) => handleImageUpload('flag', e)} />
           </div>
@@ -839,8 +976,8 @@ export default function App() {
             <SliderField label="Club Size" value={data.layout.clubTransform?.fontSize ?? 170} min={50} max={300} step={5} onChange={(v) => handleClubTransformChange('fontSize', v)} />
           </div>
           <div className="grid grid-cols-2 gap-3 pt-2 border-t border-neutral-800">
-            <ColorField label="Name Ribbon" value={data.colors.nombreBg} onChange={(v) => handleColorChange('nombreBg', v)} id="nombreBg" />
-            <ColorField label="Club Ribbon" value={data.colors.clubBg} onChange={(v) => handleColorChange('clubBg', v)} id="clubBg" />
+            <ColorPickerField label="Name Ribbon" value={data.colors.nombreBg} onChange={(v) => handleColorChange('nombreBg', v)} id="nombreBg" />
+            <ColorPickerField label="Club Ribbon" value={data.colors.clubBg} onChange={(v) => handleColorChange('clubBg', v)} id="clubBg" />
           </div>
         </Section>
 
@@ -855,13 +992,13 @@ export default function App() {
             <SliderField label="Spacing" value={data.layout.paisTransform.spacing} min={0.5} max={2.0} step={0.05} onChange={(v) => handlePaisTransformChange('spacing', v)} />
           </div>
           <div className="grid grid-cols-[1fr_2fr] gap-4 items-center">
-             <ColorField label="Stroke Color" value={data.colors.paisStroke} onChange={(v) => handleColorChange('paisStroke', v)} id="paisStroke" />
+             <ColorPickerField label="Stroke Color" value={data.colors.paisStroke} onChange={(v) => handleColorChange('paisStroke', v)} id="paisStroke" />
              <SliderField label="Stroke Width" value={data.layout.paisTransform.strokeWidth} min={1} max={50} step={1} onChange={(v) => handlePaisTransformChange('strokeWidth', v)} />
           </div>
         </Section>
 
         <Section title="FIFA Branding" icon={Palette} defaultOpen={selectedElement === 'branding'}>
-          <ColorField label="FIFA Logo Color" value={data.colors.fifaLogo} onChange={(v) => handleColorChange('fifaLogo', v)} id="fifaLogo" />
+          <ColorPickerField label="FIFA Logo Color" value={data.colors.fifaLogo} onChange={(v) => handleColorChange('fifaLogo', v)} id="fifaLogo" />
         </Section>
       </div>
     );
@@ -898,6 +1035,7 @@ export default function App() {
               >
                 <div className="absolute inset-0 bg-cyan-500/10 blur-[100px] rounded-full pointer-events-none opacity-50 block m-auto" style={{ transform: 'translateZ(-50px)' }}></div>
                 <div 
+                  ref={foilPreviewRef}
                   onPointerDown={handlePointerDown}
                   onPointerMove={handlePointerMove}
                   onPointerUp={handlePointerUp}
@@ -905,35 +1043,38 @@ export default function App() {
                   onPointerLeave={handlePointerLeave}
                   className="relative group w-full h-full card-touch-area"
                 >
-                  {/* FRONT FACE */}
                   <div 
-                    className="card-face card-front p-1 bg-white/5 backdrop-blur-sm shadow-2xl border border-white/10 overflow-hidden flex items-center justify-center"
+                    className={`card-face card-front relative z-10 ${data.effects.foilType !== 'none' ? 'card-holo' : ''}`}
+                    data-holo={data.effects.foilType !== 'none' ? data.effects.foilType : undefined}
                     style={{ 
-                      boxShadow: data.effects.emboss ? 'inset 0 0 10px rgba(0,0,0,0.5), 0 20px 40px rgba(0,0,0,0.4)' : 'none',
-                      transform: data.effects.tiltEnabled ? 'rotateY(0deg) translateZ(1px)' : 'rotateY(0deg)'
+                      transform: data.effects.tiltEnabled ? 'rotateY(0deg) translateZ(2px)' : 'rotateY(0deg)',
+                      backfaceVisibility: 'hidden' 
                     }}
                   >
-                    <SVGCard data={data} svgRef={svgRef} />
-                    <Particles type={data.effects.particles || 'none'} />
+                    <div className="w-full h-full rounded-[2.5%] overflow-hidden relative">
+                      <SVGCard data={data} svgRef={svgRef} />
+                    </div>
                     {data.effects.foilType !== 'none' && (
-                      <div
-                        className={`holofoil holofoil-${data.effects.foilType}`}
-                        style={{ opacity: isHovering ? data.effects.foilOpacity / 100 : 0 }}
-                      />
+                      <>
+                        <div className="holo-shine" style={{ opacity: data.effects.foilOpacity / 100 }}></div>
+                        <div className="holo-grain" style={{ '--grain-opacity': (data.effects.grainOpacity ?? 15) / 100, backgroundImage: `url(${generateNoiseTexture()})` } as React.CSSProperties}></div>
+                        <div className="holo-glare"></div>
+                      </>
                     )}
+                    <Particles type={data.effects.particles || 'none'} />
                   </div>
                   
-                  {/* PAPER THICKNESS EDGES */}
-                  {data.effects.tiltEnabled && [-0.6, -0.3, 0, 0.3, 0.6].map((z, i) => (
+                  {/* PAPER THICKNESS EDGES - Disabled on mobile */}
+                  {data.effects.tiltEnabled && !isMobile && [-0.6, -0.3, 0, 0.3, 0.6].map((z, i) => (
                     <div key={i} className="card-face bg-neutral-300" style={{ transform: `translateZ(${z}px)` }}></div>
                   ))}
 
                   {/* BACK FACE */}
                   <div 
-                    className="card-face card-back p-1 bg-neutral-900 shadow-2xl border border-white/10 overflow-hidden flex items-center justify-center"
+                    className={`card-face card-back absolute inset-0 z-0 ${data.effects.foilType !== 'none' ? 'card-holo' : ''}`}
+                    data-holo={data.effects.foilType !== 'none' ? data.effects.foilType : undefined}
                     style={{ 
-                      boxShadow: data.effects.emboss ? 'inset 0 0 10px rgba(0,0,0,0.5), 0 20px 40px rgba(0,0,0,0.4)' : 'none',
-                      transform: data.effects.tiltEnabled ? 'rotateY(180deg) translateZ(1px)' : 'rotateY(180deg)'
+                      transform: data.effects.tiltEnabled ? 'rotateY(180deg) translateZ(2px)' : 'rotateY(180deg)'
                     }}
                   >
                      <div className="w-full h-full rounded-[2.5%] overflow-hidden relative bg-black">
@@ -950,13 +1091,14 @@ export default function App() {
                           </div>
                        )}
                      </div>
-                     <Particles type={data.effects.particles || 'none'} />
                      {data.effects.foilType !== 'none' && (
-                      <div
-                        className={`holofoil holofoil-${data.effects.foilType}`}
-                        style={{ opacity: isHovering ? data.effects.foilOpacity / 100 : 0 }}
-                      />
-                    )}
+                       <>
+                         <div className="holo-shine" style={{ opacity: data.effects.foilOpacity / 100 }}></div>
+                         <div className="holo-grain" style={{ '--grain-opacity': (data.effects.grainOpacity ?? 15) / 100, backgroundImage: `url(${generateNoiseTexture()})` } as React.CSSProperties}></div>
+                         <div className="holo-glare"></div>
+                       </>
+                     )}
+                     <Particles type={data.effects.particles || 'none'} />
                   </div>
                 </div>
               </div>
@@ -979,6 +1121,13 @@ export default function App() {
         </div>
         
         <div className="flex items-center gap-2">
+          <button 
+            onClick={() => setEnable3D(!enable3D)} 
+            className={`px-3 py-1.5 text-xs font-bold rounded ${enable3D ? 'bg-cyan-600 text-white' : 'bg-neutral-800 text-neutral-400'}`}
+          >
+            3D {enable3D ? 'ON' : 'OFF'}
+          </button>
+          <button onClick={() => { if(window.confirm("¿Borrar todo?")) { localStorage.clear(); window.location.reload(); } }} className="p-2 hover:bg-red-900/20 text-red-500 transition-colors"><Trash2 size={18} /></button>
           <button 
             onClick={reset}
             className="p-2 hover:bg-neutral-800 rounded-full transition-colors text-neutral-400"
@@ -1052,12 +1201,14 @@ export default function App() {
                 onPointerLeave={handlePointerLeave}
                 className="relative group w-full h-full card-touch-area"
               >
-                {/* FRONT FACE */}
                 <div 
-                  className="card-face card-front p-1 bg-white/5 backdrop-blur-sm shadow-2xl border border-white/10 overflow-hidden flex items-center justify-center"
+                  className={`card-face card-front bg-white/5 backdrop-blur-sm shadow-2xl overflow-hidden flex items-center justify-center${data.effects.foilType !== 'none' ? ' card-holo' : ''}`}
+                  data-holo={data.effects.foilType !== 'none' ? data.effects.foilType : undefined}
                   style={{ 
                     boxShadow: data.effects.emboss ? 'inset 0 0 10px rgba(0,0,0,0.5), 0 20px 40px rgba(0,0,0,0.4)' : 'none',
-                    transform: data.effects.tiltEnabled ? 'rotateY(0deg) translateZ(1px)' : 'rotateY(0deg)'
+                    transform: data.effects.tiltEnabled ? 'rotateY(0deg) translateZ(2px)' : 'rotateY(0deg)',
+                    backfaceVisibility: 'hidden',
+                    border: data.effects.frameEnabled ? `${data.effects.frameWidth ?? 8}px solid ${data.effects.frameColor ?? '#D4AF37'}` : '1px solid rgba(255,255,255,0.1)',
                   }}
                 >
                   <SVGCard 
@@ -1066,6 +1217,15 @@ export default function App() {
                     selectedElement={selectedElement}
                     onSelect={setSelectedElement}
                   />
+                  {/* Capa 10: Lámina holográfica */}
+                  {data.effects.foilType !== 'none' && (
+                    <>
+                      <div className="holo-shine" style={{ opacity: data.effects.foilOpacity / 100 }}></div>
+                      <div className="holo-grain" style={{ '--grain-opacity': (data.effects.grainOpacity ?? 15) / 100, backgroundImage: `url(${generateNoiseTexture()})` } as React.CSSProperties}></div>
+                      <div className="holo-glare"></div>
+                    </>
+                  )}
+                  {/* Capa 11: Partículas */}
                   <Particles 
                     type={data.effects.particles || 'none'} 
                     density={data.effects.particleDensity}
@@ -1073,17 +1233,18 @@ export default function App() {
                   />
                 </div>
 
-                {/* PAPER THICKNESS EDGES */}
-                {data.effects.tiltEnabled && [-0.6, -0.3, 0, 0.3, 0.6].map((z, i) => (
+                {/* PAPER THICKNESS EDGES - Disabled on mobile to prevent Z-fighting */}
+                {data.effects.tiltEnabled && !isMobile && [-0.6, -0.3, 0, 0.3, 0.6].map((z, i) => (
                   <div key={i} className="card-face bg-neutral-300" style={{ transform: `translateZ(${z}px)` }}></div>
                 ))}
 
                 {/* BACK FACE */}
                 <div 
-                  className="card-face card-back p-1 bg-neutral-900 shadow-2xl border border-white/10 overflow-hidden flex items-center justify-center"
+                  className={`card-face card-back p-1 bg-neutral-900 shadow-2xl border border-white/10 overflow-hidden flex items-center justify-center${data.effects.foilType !== 'none' ? ' card-holo' : ''}`}
+                  data-holo={data.effects.foilType !== 'none' ? data.effects.foilType : undefined}
                   style={{ 
                     boxShadow: data.effects.emboss ? 'inset 0 0 10px rgba(0,0,0,0.5), 0 20px 40px rgba(0,0,0,0.4)' : 'none',
-                    transform: data.effects.tiltEnabled ? 'rotateY(180deg) translateZ(1px)' : 'rotateY(180deg)'
+                    transform: data.effects.tiltEnabled ? 'rotateY(180deg) translateZ(2px)' : 'rotateY(180deg)'
                   }}
                 >
                    <div className="w-full h-full rounded-[2.5%] overflow-hidden relative bg-black">
@@ -1101,13 +1262,14 @@ export default function App() {
                         </div>
                      )}
                    </div>
-                   <Particles type={data.effects.particles || 'none'} />
                    {data.effects.foilType !== 'none' && (
-                    <div
-                      className={`holofoil holofoil-${data.effects.foilType}`}
-                      style={{ opacity: isHovering ? data.effects.foilOpacity / 100 : 0 }}
-                    />
-                  )}
+                     <>
+                       <div className="holo-shine" style={{ opacity: data.effects.foilOpacity / 100 }}></div>
+                       <div className="holo-grain" style={{ '--grain-opacity': (data.effects.grainOpacity ?? 15) / 100, backgroundImage: `url(${generateNoiseTexture()})` } as React.CSSProperties}></div>
+                       <div className="holo-glare"></div>
+                     </>
+                   )}
+                   <Particles type={data.effects.particles || 'none'} />
                 </div>
               </div>
             </div>

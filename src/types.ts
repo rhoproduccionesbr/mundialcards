@@ -81,22 +81,31 @@ export interface CardData {
     };
   };
   effects: {
+    // ── Capa 0: Marco (Frame / Border) ──
+    frameEnabled: boolean;
+    frameColor: string;
+    frameWidth: number;
+    // ── Capa 1: Fondo ──
+    emboss: boolean;
+    // ── Capa 2: Vectores (DOS, SEIS, _26) — reflejo propio ──
+    // ── Capa 3: Jugador ──
+    playerRelief: boolean;
+    // ── Capa 4: Contenedores (franja nombre, franja club) ──
+    // ── Capa 5: Logo FIFA ──
+    // ── Capa 6: Bandera + País vertical ──
+    // ── Capa 7: Textos (nombre, datos, club) ──
+    // ── Capa 8: Branding (Panini) ──
+    // ── Capa 9: Watermark ──
+    // ── Capa 10: Holograma global ──
     foilType: string;
     foilOpacity: number;
-    emboss: boolean;
-    tiltEnabled: boolean;
+    grainOpacity: number;
+    // ── Capa 11: Partículas ──
     particles: 'none' | 'snow' | 'sparks' | 'confetti' | 'glimmers';
     particleDensity: number;
     particleSpeed: number;
-    playerRelief: boolean;
-    foilMasks: {
-      background: boolean;
-      player: boolean;
-      shapes: boolean;
-      containers: boolean;
-      texts: boolean;
-      logos: boolean;
-    };
+    // ── Motor 3D ──
+    tiltEnabled: boolean;
   };
 }
 
@@ -160,21 +169,17 @@ export const INITIAL_CARD_DATA: CardData = {
     },
   },
   effects: {
-    foilType: 'rainbow',
+    frameEnabled: false,
+    frameColor: '#D4AF37',
+    frameWidth: 8,
+    emboss: false,
+    playerRelief: false,
+    foilType: 'none',
     foilOpacity: 50,
-    emboss: true,
-    tiltEnabled: true,
+    grainOpacity: 15,
     particles: 'none',
     particleDensity: 50,
     particleSpeed: 1.0,
-    playerRelief: false,
-    foilMasks: {
-      background: true,
-      player: false,
-      shapes: false,
-      containers: false,
-      texts: false,
-      logos: false,
-    },
+    tiltEnabled: true,
   },
 };
