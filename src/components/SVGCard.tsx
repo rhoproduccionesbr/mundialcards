@@ -94,6 +94,19 @@ const SVGCard: React.FC<SVGCardProps> = ({ data, svgRef, selectedElement, onSele
           <path d="M169.93 17.55l3895.97 0 0 5493.65c0,57.35 -46.91,104.26 -104.26,104.26l-2767.68 0c-508.22,0 -924.03,-415.8 -924.03,-924.03l0 -4673.88z" />
         </clipPath>
 
+        {/* ── ClipPaths for layer reflections ── */}
+        <clipPath id="clip-lr-bg">
+          <rect x={-data.layout.padding} y={-data.layout.padding} width={5020 + 2 * data.layout.padding} height={6758 + 2 * data.layout.padding} />
+        </clipPath>
+        <clipPath id="clip-lr-vectors">
+          <path d="M215.28 2776.42l0 -869.53c0,-481.73 485.19,-869.54 1083.04,-869.54l-1083.04 0c0,-481.72 485.19,-869.53 1083.04,-869.53l1083.02 0c600.01,0 1083.04,389.55 1083.04,869.53 0,479.99 -485.19,869.54 -1083.04,869.54l1083.04 0 0 869.53 -3249.1 0z" />
+          <path d="M2658.62 4214.85c-585.19,0 -1060.1,-389.55 -1060.1,-869.54l0 -869.53c0,-481.73 474.91,-869.54 1060.1,-869.54l1060.1 0c587.3,0 1060.11,389.55 1060.11,869.54l-1060.11 0c587.3,0 1060.11,389.54 1060.11,869.53 0,479.99 -474.93,869.54 -1060.11,869.54l-1060.1 0z" />
+          <path d="M1598.52 2776.42l0 -300.64c0,-481.73 474.91,-869.54 1060.1,-869.54l541.61 0c-198.63,184.11 -491.9,300.65 -818.89,300.65l1083.04 0 0 869.53 -1865.86 0z" />
+        </clipPath>
+        <clipPath id="clip-lr-fifa">
+          <path d="M4194.25 1572.63c-159.83,0 -289.55,-99.08 -289.55,-221.18l0 -221.18c0,-122.53 129.72,-221.17 289.55,-221.17l119.31 0 -56.22 0.2 2.91 39.76c-0.37,6.62 -0.93,13.61 -0.23,20.01 0.76,6.68 3.38,11.35 3.81,17.67 0.86,12.55 -5.1,22.92 -7.14,35.02 -1.09,6.38 -2.51,11.69 -3.83,17.75 -1.16,5.39 -1.64,12.94 -3.39,18.13 -2.23,6.62 -5.63,7.21 -8.31,13.18 -6.21,13.84 0.61,11.14 -13.24,29.74 -4.07,5.47 -8.3,20.92 -12.76,30.28 -6.91,14.49 -13.71,7.53 -18.42,46.34 -1.91,1.36 -10.16,2.27 -4.69,13.25 7.95,2.38 187.96,0.98 212.51,0.98 13.85,0 62.07,2.16 70.51,-1.63 0.99,-3.42 1.98,-6.53 -0.56,-9.7 -4.58,-5.75 -2.14,1.58 -2.95,-7.31l-10.65 -23.93c-1.77,-3.51 -2.98,-4.06 -4.54,-7.6 -13.64,-30.92 -15.34,-25.8 -21.84,-38 -1.61,-3.03 -3.56,-5.17 -4.55,-7.66 -1.81,-4.52 -3.06,-13.37 -4.53,-18.76 -3.42,-12.42 -4.52,-6.38 -10.85,-13.48 -16.37,-18.4 -17.45,-46.5 -19,-75.93 -1.06,-20.07 -6.44,-20.9 -0.81,-42.55 1.79,-6.83 2.34,-12.12 4.67,-18.72 2.13,-6 4.89,-11.75 6.75,-17.04l77.64 0c160.41,0 289.55,99.08 289.55,221.17l-289.55 0c160.41,0 289.55,99.09 289.55,221.18 0,122.1 -129.72,221.18 -289.55,221.18l-289.6 0zm233.48 -327.54l-36.92 107.64 33.14 -0.03 5.2 -15.32 35.35 -0.11 5.42 15.48 32.94 0.07c-1.09,-7.29 -6.4,-19.73 -9.05,-27.44 -3.15,-9.17 -6.07,-17.92 -9.37,-27.1 -3.22,-9.01 -6.44,-18.48 -9.37,-27.04 -1.07,-3.09 -7.2,-25.34 -10.65,-26.23l-36.69 0.08zm9.05 70.77c1.24,-6.09 7.62,-24.85 10.25,-29.91l10.05 29.86 -20.3 0.05zm-111.8 -70.89l0.13 107.78 33.84 0.08 0.39 -38.66 24.79 -0.18 7.91 -23.39 -33.05 -0.44 -0.03 -21.49 40.19 0.02 8.18 -23.67 -82.35 -0.05zm-56.97 0.07l0.2 107.71 33.79 0.08 -0.08 -107.82 -33.91 0.03zm-58.87 107.74l-0.03 -38.59 24.82 -0.05c1.74,-3.43 7.67,-19.48 8.11,-23.59l-32.89 0 0.05 -21.89 40.16 -0.01 8.2 -23.61 -82.33 -0.1 0.19 107.81 33.72 0.03zm-304.44 -474.93l0 -221.18c0,-122.53 129.72,-221.18 289.55,-221.18l-289.55 0c0,-122.54 129.72,-221.17 289.55,-221.17l289.6 0c160.41,0 289.55,99.08 289.55,221.17 0,122.09 -129.72,221.18 -289.55,221.18l289.55 0 0 221.18 -358.12 0 19.08 -56.1 7.98 -38.89 26.59 -83.56c3.96,-12.16 3.35,-19.68 5.54,-31.96 3.68,-20.67 7.53,-13.81 9.3,-45.56 0.33,-5.91 8.41,-43.3 2.05,-50.42 -3.47,-3.87 -10.43,0.16 -13.85,-4.86 -2.5,-3.64 -1.82,-35.57 -26.4,-66.12 -12.56,-15.59 -20.42,-24.8 -39,-35.85 -34.5,-20.52 -77.81,-27.14 -120.53,-10.81 -34.25,13.09 -61.72,40.32 -76.12,72.55 -20.93,46.88 -6.63,69.46 -8.03,75.29 -1.29,5.27 -6.97,4.73 -8.56,10.11 -3.73,12.54 8.49,48.05 11.63,62.01 2.06,9.31 8.78,17.18 11.65,25.66 3.27,9.66 2.4,42.73 7.55,67.27 2.22,10.5 4.43,19.12 6.21,30.16 0.93,5.93 3.03,8.73 4.24,14.58 1.1,5.36 1.18,10.51 3.06,15.64 5.21,14.38 27.04,32.02 20.39,48.61 -0.68,1.7 -0.5,1.74 -1.22,2.25l-352.14 0z" />
+        </clipPath>
+
         {/* 3D Depth Map Relief Filter for Player */}
         <filter id="player-relief" x="-20%" y="-20%" width="140%" height="140%">
           <feColorMatrix type="luminanceToAlpha" in="SourceGraphic" result="bumpMap" />
@@ -336,10 +349,57 @@ const SVGCard: React.FC<SVGCardProps> = ({ data, svgRef, selectedElement, onSele
       )}
 
       {/* ═══════════════════════════════════════════════════
-          CAPA 10: HOLOGRAMA / REFLEJO GLOBAL (futuro)
-          Aquí se insertarán foreignObjects o elementos
-          de reflejo cuando se implementen los hologramas.
+          LAYER REFLECTIONS — Clipped to each object shape
           ═══════════════════════════════════════════════════ */}
+
+      {/* Reflection: Background */}
+      {data.effects.reflectionBg?.enabled && data.effects.reflectionBg.style !== 'none' && (
+        <foreignObject
+          x={-data.layout.padding} y={-data.layout.padding}
+          width={5020 + 2 * data.layout.padding} height={6758 + 2 * data.layout.padding}
+          clipPath="url(#clip-lr-bg)"
+          style={{ pointerEvents: 'none' }}
+        >
+          <div
+            xmlns="http://www.w3.org/1999/xhtml"
+            className="layer-reflection active"
+            data-lr-style={data.effects.reflectionBg.style}
+            style={{ width: '100%', height: '100%', '--lr-intensity': data.effects.reflectionBg.intensity / 100 } as React.CSSProperties}
+          />
+        </foreignObject>
+      )}
+
+      {/* Reflection: Vectors — bbox: x=215 y=167 w=4564 h=4048 */}
+      {data.effects.reflectionVectors?.enabled && data.effects.reflectionVectors.style !== 'none' && (
+        <foreignObject
+          x="215" y="167" width="4564" height="4048"
+          clipPath="url(#clip-lr-vectors)"
+          style={{ pointerEvents: 'none' }}
+        >
+          <div
+            xmlns="http://www.w3.org/1999/xhtml"
+            className="layer-reflection active"
+            data-lr-style={data.effects.reflectionVectors.style}
+            style={{ width: '100%', height: '100%', '--lr-intensity': data.effects.reflectionVectors.intensity / 100 } as React.CSSProperties}
+          />
+        </foreignObject>
+      )}
+
+      {/* Reflection: FIFA Logo — bbox: x=3890 y=205 w=894 h=1368 */}
+      {data.effects.reflectionFifa?.enabled && data.effects.reflectionFifa.style !== 'none' && (
+        <foreignObject
+          x="3890" y="205" width="894" height="1368"
+          clipPath="url(#clip-lr-fifa)"
+          style={{ pointerEvents: 'none' }}
+        >
+          <div
+            xmlns="http://www.w3.org/1999/xhtml"
+            className="layer-reflection active"
+            data-lr-style={data.effects.reflectionFifa.style}
+            style={{ width: '100%', height: '100%', '--lr-intensity': data.effects.reflectionFifa.intensity / 100 } as React.CSSProperties}
+          />
+        </foreignObject>
+      )}
 
     </svg>
   );

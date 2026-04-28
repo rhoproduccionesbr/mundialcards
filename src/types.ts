@@ -96,7 +96,12 @@ export interface CardData {
     // ── Capa 7: Textos (nombre, datos, club) ──
     // ── Capa 8: Branding (Panini) ──
     // ── Capa 9: Watermark ──
-    // ── Capa 10: Holograma global ──
+    // ── Reflejos individuales por capa ──
+    reflectionFrame: LayerReflection;
+    reflectionBg: LayerReflection;     // incluye estilo 'fog' (neblina)
+    reflectionVectors: LayerReflection;
+    reflectionFifa: LayerReflection;
+    // ── Capa 10: Holograma global (siempre encima de todo) ──
     foilType: string;
     foilOpacity: number;
     grainOpacity: number;
@@ -107,6 +112,25 @@ export interface CardData {
     // ── Motor 3D ──
     tiltEnabled: boolean;
   };
+}
+
+// Estilos de reflejo por capa (DISTINTOS de los estilos de lámina holográfica global)
+export type LayerReflectionStyle =
+  | 'none'
+  | 'metallic-gold'     // Dorado metálico cálido
+  | 'metallic-silver'   // Plateado metálico frío
+  | 'brushed-steel'     // Acero cepillado direccional
+  | 'copper-glow'       // Cobre con brillo cálido
+  | 'emerald-shine'     // Verde esmeralda brillante
+  | 'ruby-gloss'        // Rojo rubí brillante
+  | 'pearl'             // Perla nacarada iridiscente
+  | 'obsidian'          // Negro obsidiana con brillo sutil
+  | 'fog';              // Neblina animada (solo disponible para fondo)
+
+export interface LayerReflection {
+  enabled: boolean;
+  style: LayerReflectionStyle;
+  intensity: number; // 0-100
 }
 
 export const INITIAL_CARD_DATA: CardData = {
@@ -174,6 +198,10 @@ export const INITIAL_CARD_DATA: CardData = {
     frameWidth: 8,
     emboss: false,
     playerRelief: false,
+    reflectionFrame: { enabled: false, style: 'none', intensity: 50 },
+    reflectionBg: { enabled: false, style: 'none', intensity: 50 },
+    reflectionVectors: { enabled: false, style: 'none', intensity: 50 },
+    reflectionFifa: { enabled: false, style: 'none', intensity: 50 },
     foilType: 'none',
     foilOpacity: 50,
     grainOpacity: 15,

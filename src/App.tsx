@@ -2,12 +2,14 @@ import React, { useState, useRef, ChangeEvent } from 'react';
 import { Download, RotateCcw, Upload, ChevronDown, ChevronRight, Palette, Image as ImageIcon, Type, Globe, Sparkles, Eye, X, Loader2, RefreshCcw, FlipHorizontal, Trash2, Plus, Save } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toPng } from 'html-to-image';
-import { CardData, INITIAL_CARD_DATA } from './types';
+import { CardData, INITIAL_CARD_DATA, LayerReflection, LayerReflectionStyle } from './types';
 import SVGCard from './components/SVGCard';
 import Particles from './components/Particles';
 import ColorPickerField from './components/ColorPickerField';
+import LayerReflectionOverlay from './components/LayerReflection';
 import { generateNoiseTexture } from './utils/noiseTexture';
 import './holo-lamina.css';
+import './layer-reflections.css';
 
 const cardTemplates = [
   {
@@ -648,6 +650,84 @@ export default function App() {
     }));
   };
 
+  // ── Helper for per-layer reflections ──
+  const handleReflectionChange = (
+    layer: 'reflectionFrame' | 'reflectionBg' | 'reflectionVectors' | 'reflectionFifa',
+    field: keyof LayerReflection,
+    value: boolean | string | number
+  ) => {
+    setData(prev => ({
+      ...prev,
+      effects: {
+        ...prev.effects,
+        [layer]: { ...prev.effects[layer], [field]: value }
+      }
+    }));
+  };
+
+  // Dropdown options for layer reflections (DISTINCT from holo lamina)
+  const layerReflectionStyles: { value: LayerReflectionStyle; label: string }[] = [
+    { value: 'none', label: '🚫 Sin reflejo' },
+    { value: 'metallic-gold', label: '🥇 Dorado Metálico' },
+    { value: 'metallic-silver', label: '🥈 Plateado Metálico' },
+    { value: 'brushed-steel', label: '⚙️ Acero Cepillado' },
+    { value: 'copper-glow', label: '🔶 Cobre Brillante' },
+    { value: 'emerald-shine', label: '💚 Esmeralda' },
+    { value: 'ruby-gloss', label: '❤️ Rubí' },
+    { value: 'pearl', label: '🦪 Perla Nacarada' },
+    { value: 'obsidian', label: '🖤 Obsidiana' },
+  ];
+
+  // Background gets fog option too
+  const bgReflectionStyles = [
+    ...layerReflectionStyles,
+    { value: 'fog' as LayerReflectionStyle, label: '🌫️ Neblina Animada' },
+  ];
+
+  // Reusable reflection control UI
+  const ReflectionControl: React.FC<{
+    label: string;
+    layer: 'reflectionFrame' | 'reflectionBg' | 'reflectionVectors' | 'reflectionFifa';
+    styles?: { value: LayerReflectionStyle; label: string }[];
+  }> = ({ label, layer, styles }) => {
+    const config = data.effects[layer];
+    const options = styles || layerReflectionStyles;
+    return (
+      <div className="mt-3 pt-3 border-t border-neutral-800/50">
+        <label className="flex items-center gap-2 text-[10px] uppercase font-bold tracking-wider text-neutral-400 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={config?.enabled ?? false}
+            onChange={(e) => handleReflectionChange(layer, 'enabled', e.target.checked)}
+            className="accent-cyan-500"
+          />
+          ✨ {label}
+        </label>
+        {config?.enabled && (
+          <div className="mt-2 space-y-2">
+            <select
+              value={config.style}
+              onChange={(e) => handleReflectionChange(layer, 'style', e.target.value)}
+              className="w-full bg-neutral-800 border border-neutral-700 rounded px-2 py-1.5 text-xs text-white"
+            >
+              {options.map(s => (
+                <option key={s.value} value={s.value}>{s.label}</option>
+              ))}
+            </select>
+            <SliderField
+              label="Intensidad (%)"
+              value={config.intensity ?? 50}
+              min={10}
+              max={100}
+              step={5}
+              onChange={(v) => handleReflectionChange(layer, 'intensity', v)}
+            />
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const handlePaisTransformChange = (field: keyof CardData['layout']['paisTransform'], value: number) => {
     setData(prev => ({
       ...prev,
@@ -810,6 +890,7 @@ export default function App() {
             />
           </div>
           <SliderField label="Margin / Padding" value={data.layout.padding} min={0} max={1000} step={10} onChange={handlePaddingChange} />
+          <ReflectionControl label="Reflejo del Fondo" layer="reflectionBg" styles={bgReflectionStyles} />
         </Section>
 
         <Section title="Efectos & Animaciones" icon={Sparkles} defaultOpen={selectedElement === 'effects'}>
@@ -826,6 +907,7 @@ export default function App() {
                   <SliderField label="Grosor (px)" value={data.effects.frameWidth ?? 8} min={2} max={30} step={1} onChange={(v) => handleEffectChange('frameWidth', v)} />
                 </div>
               )}
+              <ReflectionControl label="Reflejo del Marco" layer="reflectionFrame" />
             </div>
             <div className="flex items-center justify-between">
               <label className="text-[10px] uppercase font-bold tracking-wider text-neutral-400">Activar Relieve (Emboss)</label>
@@ -896,6 +978,7 @@ export default function App() {
             <ColorPickerField label="SEIS" value={data.colors.seis} onChange={(v) => handleColorChange('seis', v)} id="seis" />
             <ColorPickerField label="INTER" value={data.colors.inter} onChange={(v) => handleColorChange('inter', v)} id="inter" />
           </div>
+          <ReflectionControl label="Reflejo Vectores (DOS/SEIS/_26)" layer="reflectionVectors" />
         </Section>
 
         <Section title="Player Image" icon={ImageIcon} defaultOpen={selectedElement === 'player'}>
@@ -999,6 +1082,7 @@ export default function App() {
 
         <Section title="FIFA Branding" icon={Palette} defaultOpen={selectedElement === 'branding'}>
           <ColorPickerField label="FIFA Logo Color" value={data.colors.fifaLogo} onChange={(v) => handleColorChange('fifaLogo', v)} id="fifaLogo" />
+          <ReflectionControl label="Reflejo Logo FIFA" layer="reflectionFifa" />
         </Section>
       </div>
     );
@@ -1054,6 +1138,7 @@ export default function App() {
                     <div className="w-full h-full rounded-[2.5%] overflow-hidden relative">
                       <SVGCard data={data} svgRef={svgRef} />
                     </div>
+                    {/* Holo lamina (always on top) */}
                     {data.effects.foilType !== 'none' && (
                       <>
                         <div className="holo-shine" style={{ opacity: data.effects.foilOpacity / 100 }}></div>
@@ -1217,7 +1302,7 @@ export default function App() {
                     selectedElement={selectedElement}
                     onSelect={setSelectedElement}
                   />
-                  {/* Capa 10: Lámina holográfica */}
+                  {/* Capa 10: Lámina holográfica (siempre encima) */}
                   {data.effects.foilType !== 'none' && (
                     <>
                       <div className="holo-shine" style={{ opacity: data.effects.foilOpacity / 100 }}></div>
