@@ -1,6 +1,23 @@
 import paniniLogo from './logo-panini-256.png';
 import backCardImg from './backcard.png';
 
+export interface BrandHologramSettings {
+  enabled: boolean;
+  density: number;          // tile size in pixels (e.g. 50 to 500, default 150)
+  rotation: number;         // rotation in degrees (0-360)
+  xOffset: number;          // position offset X in pixels
+  yOffset: number;          // position offset Y in pixels
+  opacity: number;          // opacity percentage (0-100)
+  colorMode: 'solid' | 'linear' | 'radial';
+  color: string;            // hex tint color (or start color for gradient)
+  color2: string;           // end color for gradient
+  blendMode: 'normal' | 'multiply' | 'screen' | 'overlay' | 'color-dodge' | 'color' | 'luminosity';
+  reflectionEnabled: boolean;
+  reflectionStyle: LayerReflectionStyle;
+  reflectionIntensity: number;
+  reflectionRoughness: number;
+}
+
 export interface CardData {
   id: string;
   name: string;
@@ -80,6 +97,22 @@ export interface CardData {
       fontSize: number;
     };
   };
+  visibleLayers?: {
+    frame: boolean;
+    background: boolean;
+    vectors: boolean;
+    player: boolean;
+    banners: boolean;
+    texts: boolean;
+    flag: boolean;
+    country: boolean;
+    fifa: boolean;
+    panini: boolean;
+    watermark: boolean;
+    hologram: boolean;
+    particles: boolean;
+    brandHologram?: boolean;
+  };
   effects: {
     // ── Capa 0: Marco (Frame / Border) ──
     frameEnabled: boolean;
@@ -112,25 +145,26 @@ export interface CardData {
     // ── Motor 3D ──
     tiltEnabled: boolean;
   };
+  brandHologram?: BrandHologramSettings;
 }
 
-// Estilos de reflejo por capa (DISTINTOS de los estilos de lámina holográfica global)
+// Materiales de superficie por capa (usan filtros SVG nativos: feSpecularLighting + fePointLight)
 export type LayerReflectionStyle =
   | 'none'
-  | 'metallic-gold'     // Dorado metálico cálido
-  | 'metallic-silver'   // Plateado metálico frío
-  | 'brushed-steel'     // Acero cepillado direccional
-  | 'copper-glow'       // Cobre con brillo cálido
-  | 'emerald-shine'     // Verde esmeralda brillante
-  | 'ruby-gloss'        // Rojo rubí brillante
-  | 'pearl'             // Perla nacarada iridiscente
-  | 'obsidian'          // Negro obsidiana con brillo sutil
-  | 'fog';              // Neblina animada (solo disponible para fondo)
+  | 'glossy'            // Brillante liso
+  | 'chrome'            // Espejo cromado
+  | 'metallic-gold'     // Dorado metálico
+  | 'metallic-silver'   // Plateado metálico
+  | 'rough-gold'        // Dorado rugoso
+  | 'rough-silver'      // Plateado rugoso
+  | 'pearl'             // Perla nacarada
+  | 'obsidian';         // Obsidiana oscura
 
 export interface LayerReflection {
   enabled: boolean;
   style: LayerReflectionStyle;
-  intensity: number; // 0-100
+  intensity: number;   // 0-100 (how visible the effect is)
+  roughness: number;   // 0-100 (surface texture, 0=smooth)
 }
 
 export const INITIAL_CARD_DATA: CardData = {
@@ -192,16 +226,32 @@ export const INITIAL_CARD_DATA: CardData = {
       fontSize: 170,
     },
   },
+  visibleLayers: {
+    frame: true,
+    background: true,
+    vectors: true,
+    player: true,
+    banners: true,
+    texts: true,
+    flag: true,
+    country: true,
+    fifa: true,
+    panini: true,
+    watermark: true,
+    hologram: true,
+    particles: false,
+    brandHologram: false,
+  },
   effects: {
     frameEnabled: false,
     frameColor: '#D4AF37',
     frameWidth: 8,
     emboss: false,
     playerRelief: false,
-    reflectionFrame: { enabled: false, style: 'none', intensity: 50 },
-    reflectionBg: { enabled: false, style: 'none', intensity: 50 },
-    reflectionVectors: { enabled: false, style: 'none', intensity: 50 },
-    reflectionFifa: { enabled: false, style: 'none', intensity: 50 },
+    reflectionFrame: { enabled: false, style: 'none', intensity: 50, roughness: 10 },
+    reflectionBg: { enabled: false, style: 'none', intensity: 50, roughness: 10 },
+    reflectionVectors: { enabled: false, style: 'none', intensity: 50, roughness: 10 },
+    reflectionFifa: { enabled: false, style: 'none', intensity: 50, roughness: 10 },
     foilType: 'none',
     foilOpacity: 50,
     grainOpacity: 15,
@@ -209,5 +259,21 @@ export const INITIAL_CARD_DATA: CardData = {
     particleDensity: 50,
     particleSpeed: 1.0,
     tiltEnabled: true,
+  },
+  brandHologram: {
+    enabled: false,
+    density: 150,
+    rotation: 0,
+    xOffset: 0,
+    yOffset: 0,
+    opacity: 50,
+    colorMode: 'solid',
+    color: '#00FFFF',
+    color2: '#FF00FF',
+    blendMode: 'screen',
+    reflectionEnabled: false,
+    reflectionStyle: 'none',
+    reflectionIntensity: 50,
+    reflectionRoughness: 10,
   },
 };
